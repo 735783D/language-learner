@@ -22,7 +22,7 @@ const SpanishLearningApp = () => {
     1: {
       name: "Character Set",
       description: "Learn the Spanish alphabet and special characters",
-      requiredScore: 7,
+      requiredScore: 6, // Need 6 out of 9 (67%)
       exercises: [
         { type: "character", char: "á", sound: "ah (stressed)", example: "más", translation: "more" },
         { type: "character", char: "é", sound: "eh (stressed)", example: "café", translation: "coffee" },
@@ -38,7 +38,7 @@ const SpanishLearningApp = () => {
     2: {
       name: "Tiny Words",
       description: "Master essential building blocks",
-      requiredScore: 12,
+      requiredScore: 10, // Need 10 out of 14 (71%)
       exercises: [
         { type: "match", word: "el", translation: "the", options: ["the", "a", "and", "or"] },
         { type: "match", word: "la", translation: "the", options: ["the", "a", "she", "he"] },
@@ -59,7 +59,7 @@ const SpanishLearningApp = () => {
     3: {
       name: "Small Sentences",
       description: "Combine words into simple phrases",
-      requiredScore: 10,
+      requiredScore: 7, // Need 7 out of 10 (70%)
       exercises: [
         { 
           type: "build", 
@@ -138,18 +138,9 @@ const SpanishLearningApp = () => {
   if (!exercise) return null;
 
   const handleDragStart = (e, item) => {
-    draggedItemRef.current = item; // Use ref instead of state
+    draggedItemRef.current = item;
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', item);
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setDropZoneActive(true);
-  };
-
-  const handleDragLeave = (e) => {
-    setDropZoneActive(false);
   };
 
   const handleDrop = (e, targetAnswer = null) => {
@@ -158,29 +149,44 @@ const SpanishLearningApp = () => {
     
     if (!draggedItemRef.current) return;
 
-    let isCorrect = false;
+    let answersMatch = false;
 
     if (exercise.type === "character") {
-      isCorrect = true; // Character learning is exposure-based
+      answersMatch = true; // Character learning is exposure-based
     } else if (exercise.type === "match" && targetAnswer) {
       const translationParts = exercise.translation.toLowerCase().split(/[\/,]/);
-      isCorrect = translationParts.some(part => part.trim() === targetAnswer.toLowerCase());
+      answersMatch = translationParts.some(part => part.trim() === targetAnswer.toLowerCase());
     } else if (exercise.type === "build" && Array.isArray(targetAnswer)) {
       // For build exercises, compare the arrays
-      isCorrect = JSON.stringify(targetAnswer) === JSON.stringify(exercise.correct);
+      answersMatch = JSON.stringify(targetAnswer) === JSON.stringify(exercise.correct);
     }
 
-    if (isCorrect) {
+    if (answersMatch) {
       setFeedback("correct");
       setScore(score + 1);
       setStageProgress({
         ...stageProgress,
         [currentStage]: stageProgress[currentStage] + 1
       });
-      setStrikes(0); // Reset strikes on correct answer
+      // Don't reset strikes on every correct - only when stage resets
     } else {
       setFeedback("incorrect");
-      setStrikes(strikes + 1);
+      const newStrikes = strikes + 1;
+      setStrikes(newStrikes);
+      
+      // If 3 strikes, reset the stage
+      if (newStrikes >= 3) {
+        setTimeout(() => {
+          setCurrentExercise(0);
+          setStageProgress({
+            ...stageProgress,
+            [currentStage]: 0
+          });
+          setStrikes(0);
+          alert('Three strikes! Starting stage over.');
+        }, 1500);
+        return;
+      }
     }
 
     setTimeout(() => {
@@ -188,7 +194,7 @@ const SpanishLearningApp = () => {
         setCurrentExercise(currentExercise + 1);
       } else {
         // Stage complete - check if passed
-        const finalScore = stageProgress[currentStage] + (isCorrect ? 1 : 0);
+        const finalScore = stageProgress[currentStage] + (answersMatch ? 1 : 0);
         if (finalScore >= currentStageData.requiredScore && strikes < 3) {
           if (!unlockedStages.includes(currentStage + 1) && stages[currentStage + 1]) {
             setUnlockedStages([...unlockedStages, currentStage + 1]);
@@ -254,7 +260,8 @@ const SpanishLearningApp = () => {
       if (feedback) {
         setMatchDroppedOn(null);
       }
-    }, [feedback]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentExercise]);
 
     const checkAndSubmit = (draggedAnswer, droppedAnswer) => {
       // Check if either the word was dragged to the answer, or the answer to the word
@@ -440,11 +447,13 @@ const SpanishLearningApp = () => {
 
     useEffect(() => {
       if (feedback) {
-        setTimeout(() => {
+        const timer = setTimeout(() => {
           setSelectedWords([]);
         }, 1500);
+        return () => clearTimeout(timer);
       }
-    }, [feedback]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentExercise]);
 
     return (
       <div className="flex flex-col h-full py-8">
