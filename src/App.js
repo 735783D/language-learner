@@ -9,20 +9,40 @@
 // const SpanishLearningApp = () => {
 //   const [currentStage, setCurrentStage] = useState(1);
 //   const [currentExercise, setCurrentExercise] = useState(0);
+//   const [generatedExercises, setGeneratedExercises] = useState(null);
 //   const [score, setScore] = useState(0);
 //   const [strikes, setStrikes] = useState(0);
 //   const [stageProgress, setStageProgress] = useState({ 1: 0, 2: 0, 3: 0 });
 //   const [feedback, setFeedback] = useState(null);
-//   const [unlockedStages, setUnlockedStages] = useState([1, 2, 3]); // All unlocked for testing
+//   const [unlockedStages, setUnlockedStages] = useState([1, 2, 3]);
 //   const draggedItemRef = useRef(null);
 //   const [dropZoneActive, setDropZoneActive] = useState(false);
 //   const [selectedWords, setSelectedWords] = useState([]);
 
 //   const stages = spanishStages;
 //   const currentStageData = stages[currentStage];
-//   const exercise = currentStageData?.exercises[currentExercise];
+
+//   // Generate exercises for randomized stages, or use sequential exercises
+//   const exercises = currentStageData.type === "randomized" 
+//     ? (generatedExercises || currentStageData.generateExercises())
+//     : currentStageData.exercises;
+
+//   const exercise = exercises[currentExercise];
+
+//   // If this is a randomized stage and we haven't generated exercises yet, do it now
+//   if (currentStageData.type === "randomized" && !generatedExercises) {
+//     setGeneratedExercises(currentStageData.generateExercises());
+//   }
 
 //   if (!exercise) return null;
+
+//   const handleStageChange = (newStage) => {
+//     setCurrentStage(newStage);
+//     setCurrentExercise(0);
+//     setGeneratedExercises(null);
+//     setSelectedWords([]);
+//     setFeedback(null);
+//   };
 
 //   const handleDragStart = (e, item) => {
 //     draggedItemRef.current = item;
@@ -65,6 +85,7 @@
 //             [currentStage]: 0
 //           });
 //           setStrikes(0);
+//           setGeneratedExercises(null);
 //           alert('Three strikes! Starting stage over.');
 //         }, 1500);
 //         return;
@@ -72,7 +93,7 @@
 //     }
 
 //     setTimeout(() => {
-//       if (currentExercise < currentStageData.exercises.length - 1) {
+//       if (currentExercise < exercises.length - 1) {
 //         setCurrentExercise(currentExercise + 1);
 //       } else {
 //         const finalScore = stageProgress[currentStage] + (answersMatch ? 1 : 0);
@@ -83,6 +104,7 @@
 //         }
 //         setCurrentExercise(0);
 //         setStrikes(0);
+//         setGeneratedExercises(null);
 //       }
 //       setFeedback(null);
 //       draggedItemRef.current = null;
@@ -111,6 +133,7 @@
 //             [currentStage]: 0
 //           });
 //           setStrikes(0);
+//           setGeneratedExercises(null);
 //           alert('Three strikes! Starting stage over.');
 //         }, 1500);
 //         return;
@@ -118,7 +141,7 @@
 //     }
 
 //     setTimeout(() => {
-//       if (currentExercise < currentStageData.exercises.length - 1) {
+//       if (currentExercise < exercises.length - 1) {
 //         setCurrentExercise(currentExercise + 1);
 //       } else {
 //         const finalScore = stageProgress[currentStage] + (isCorrect ? 1 : 0);
@@ -129,6 +152,7 @@
 //         }
 //         setCurrentExercise(0);
 //         setStrikes(0);
+//         setGeneratedExercises(null);
 //       }
 //       setFeedback(null);
 //       setSelectedWords([]);
@@ -160,7 +184,7 @@
 //         <StageSelector 
 //           stages={stages}
 //           currentStage={currentStage}
-//           setCurrentStage={setCurrentStage}
+//           setCurrentStage={handleStageChange}
 //           unlockedStages={unlockedStages}
 //           stageProgress={stageProgress}
 //         />
@@ -170,7 +194,7 @@
 //           <div className="mb-6">
 //             <div className="flex justify-between items-center mb-2">
 //               <span className="text-sm font-semibold text-gray-600">
-//                 Exercise {currentExercise + 1} of {currentStageData.exercises.length}
+//                 Exercise {currentExercise + 1} of {exercises.length}
 //               </span>
 //               <span className="text-sm font-semibold text-blue-600">
 //                 <Star className="inline w-4 h-4" fill="currentColor" /> Score: {stageProgress[currentStage]}/{currentStageData.requiredScore}
@@ -182,7 +206,7 @@
 //             <div className="w-full bg-gray-200 rounded-full h-2">
 //               <div
 //                 className="bg-blue-600 h-2 rounded-full transition-all duration-500"
-//                 style={{ width: `${(currentExercise / currentStageData.exercises.length) * 100}%` }}
+//                 style={{ width: `${(currentExercise / exercises.length) * 100}%` }}
 //               />
 //             </div>
 //           </div>
@@ -198,8 +222,8 @@
 //               />
 //             )}
 //             {exercise.type === "match" && (
-//               <MatchExercise
-//                 key={currentExercise}  
+//               <MatchExercise 
+//                 key={currentExercise}
 //                 exercise={exercise}
 //                 feedback={feedback}
 //                 currentStage={currentStage}
@@ -253,12 +277,14 @@
 import React, { useState, useRef } from 'react';
 import { X, Check, Star } from 'lucide-react';
 import { spanishStages } from './data/spanishData';
+import Hub from './components/Hub';
 import CharacterExercise from './components/CharacterExercise';
 import MatchExercise from './components/MatchExercise';
 import BuildExercise from './components/BuildExercise';
 import StageSelector from './components/StageSelector';
 
 const SpanishLearningApp = () => {
+  const [selectedLesson, setSelectedLesson] = useState(null);
   const [currentStage, setCurrentStage] = useState(1);
   const [currentExercise, setCurrentExercise] = useState(0);
   const [generatedExercises, setGeneratedExercises] = useState(null);
@@ -271,22 +297,36 @@ const SpanishLearningApp = () => {
   const [dropZoneActive, setDropZoneActive] = useState(false);
   const [selectedWords, setSelectedWords] = useState([]);
 
+  // If no lesson selected, show hub
+  if (!selectedLesson) {
+    return <Hub onSelectLesson={setSelectedLesson} languageName="Spanish" />;
+  }
+
+  // Lesson is selected, show the learning interface
   const stages = spanishStages;
   const currentStageData = stages[currentStage];
 
-  // Generate exercises for randomized stages, or use sequential exercises
   const exercises = currentStageData.type === "randomized" 
     ? (generatedExercises || currentStageData.generateExercises())
     : currentStageData.exercises;
 
   const exercise = exercises[currentExercise];
 
-  // If this is a randomized stage and we haven't generated exercises yet, do it now
   if (currentStageData.type === "randomized" && !generatedExercises) {
     setGeneratedExercises(currentStageData.generateExercises());
   }
 
   if (!exercise) return null;
+
+  const handleBackToHub = () => {
+    setSelectedLesson(null);
+    setCurrentStage(1);
+    setCurrentExercise(0);
+    setGeneratedExercises(null);
+    setSelectedWords([]);
+    setFeedback(null);
+    setStrikes(0);
+  };
 
   const handleStageChange = (newStage) => {
     setCurrentStage(newStage);
@@ -412,7 +452,7 @@ const SpanishLearningApp = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8" style={{userSelect: 'none', WebkitUserSelect: 'none'}}>
+    <div className="min-h-screen bg-gradient-to-br from-stone-100 via-amber-50 to-orange-100 p-8" style={{userSelect: 'none', WebkitUserSelect: 'none'}}>
       <style>{`
         @keyframes shake {
           0%, 100% { transform: translateX(0); }
@@ -426,10 +466,18 @@ const SpanishLearningApp = () => {
       `}</style>
       
       <div className="max-w-4xl mx-auto">
+        {/* Back button */}
+        <button
+          onClick={handleBackToHub}
+          className="mb-4 px-4 py-2 bg-white rounded-lg shadow hover:shadow-md transition text-stone-700 font-semibold"
+        >
+          ← Back to Lessons
+        </button>
+
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Spanish Learning</h1>
-          <p className="text-gray-600">Progressive mastery-based approach</p>
+          <h1 className="text-4xl font-bold text-stone-800 mb-2">Spanish Learning</h1>
+          <p className="text-stone-600">Progressive mastery-based approach</p>
         </div>
 
         {/* Stage Selector */}
@@ -445,19 +493,19 @@ const SpanishLearningApp = () => {
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-4 min-h-[600px]">
           <div className="mb-6">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-semibold text-gray-600">
+              <span className="text-sm font-semibold text-stone-600">
                 Exercise {currentExercise + 1} of {exercises.length}
               </span>
-              <span className="text-sm font-semibold text-blue-600">
+              <span className="text-sm font-semibold text-amber-600">
                 <Star className="inline w-4 h-4" fill="currentColor" /> Score: {stageProgress[currentStage]}/{currentStageData.requiredScore}
               </span>
               <span className="text-sm font-semibold text-red-600">
                 ❌ Strikes: {strikes}/3
               </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-stone-200 rounded-full h-2">
               <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                className="bg-amber-600 h-2 rounded-full transition-all duration-500"
                 style={{ width: `${(currentExercise / exercises.length) * 100}%` }}
               />
             </div>
