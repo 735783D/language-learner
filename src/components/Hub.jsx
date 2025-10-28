@@ -1,7 +1,10 @@
 import React from 'react';
 import { BookOpen, MessageCircle, Brain, Target } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
+import ThemeToggle from './ThemeToggle';
 
 const Hub = ({ onSelectLesson, languageName = "Spanish" }) => {
+  const { theme } = useTheme();
   const lessons = [
     {
       id: 1,
@@ -45,15 +48,9 @@ const Hub = ({ onSelectLesson, languageName = "Spanish" }) => {
     }
   ];
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-100 via-amber-50 to-orange-100 relative overflow-hidden">
-      {/* Floating blobs background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="blob blob-1"></div>
-        <div className="blob blob-2"></div>
-        <div className="blob blob-3"></div>
-        <div className="blob blob-4"></div>
-      </div>
+return (
+  <div className={`min-h-screen ${theme.bg} relative overflow-hidden`}>
+    <ThemeToggle />
 
       {/* Content */}
       <div className="relative z-10 max-w-4xl mx-auto px-8 py-12">
