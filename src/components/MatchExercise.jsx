@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 
 const MatchExercise = ({ 
@@ -13,6 +13,11 @@ const MatchExercise = ({
   const { theme } = useTheme();
   const [matchDroppedOn, setMatchDroppedOn] = useState(null);
   const [matchHoverZone, setMatchHoverZone] = useState(null);
+  const [dragPosition, setDragPosition] = useState(null);
+  const [draggedText, setDraggedText] = useState('');
+  const isDragging = useRef(false);
+  const dragSource = useRef(null);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
 
   const shuffledOptions = useMemo(() => {
     return [...exercise.options].sort(() => Math.random() - 0.5);
@@ -20,7 +25,6 @@ const MatchExercise = ({
   }, [currentStage, currentExercise]);
 
   useEffect(() => {
-    // Clear immediately when exercise changes
     setMatchDroppedOn(null);
     setMatchHoverZone(null);
   }, [currentExercise]);
@@ -30,16 +34,130 @@ const MatchExercise = ({
     handleDrop({ preventDefault: () => {} }, targetOption);
   };
 
+  const startDrag = (e, item, source, clientX, clientY) => {
+    isDragging.current = true;
+    dragSource.current = source;
+    draggedItemRef.current = item;
+    setDraggedText(item);
+    
+    // Calculate offset
+    const target = e.currentTarget;
+    const rect = target.getBoundingClientRect();
+    setOffset({
+      x: clientX - (rect.left + rect.width / 2),
+      y: clientY - (rect.top + rect.height / 2)
+    });
+    
+    setDragPosition({ x: clientX - (clientX - (rect.left + rect.width / 2)), y: clientY - (clientY - (rect.top + rect.height / 2)) });
+    
+    if (e.dataTransfer) {
+      handleDragStart(e, item);
+    }
+  };
+
+  const moveDrag = (clientX, clientY) => {
+    if (!isDragging.current) return;
+    setDragPosition({ x: clientX - offset.x, y: clientY - offset.y });
+    
+    const zone = checkDropZone(clientX, clientY);
+    setMatchHoverZone(zone);
+  };
+
+  const checkDropZone = (clientX, clientY) => {
+    // Check center word
+    const centerWord = document.querySelector('[data-center-word]');
+    if (centerWord) {
+      const rect = centerWord.getBoundingClientRect();
+      if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
+        return 'center';
+      }
+    }
+
+    // Check corner options
+    const options = document.querySelectorAll('[data-corner-option]');
+    for (let option of options) {
+      const rect = option.getBoundingClientRect();
+      if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
+        return option.getAttribute('data-option-value');
+      }
+    }
+
+    return null;
+  };
+
+  const endDrag = (clientX, clientY) => {
+    if (!isDragging.current) return;
+
+    const dropZone = checkDropZone(clientX, clientY);
+    
+    if (dropZone) {
+      if (dropZone === 'center' && draggedItemRef.current !== exercise.word) {
+        checkAndSubmit(draggedItemRef.current, exercise.word, draggedItemRef.current);
+      } else if (dropZone !== 'center' && draggedItemRef.current === exercise.word) {
+        checkAndSubmit(dropZone, draggedItemRef.current, dropZone);
+      }
+    }
+
+    isDragging.current = false;
+    dragSource.current = null;
+    setDragPosition(null);
+    setMatchHoverZone(null);
+  };
+
+  // Document-level event listeners
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (isDragging.current) {
+        e.preventDefault();
+        moveDrag(e.clientX, e.clientY);
+      }
+    };
+
+    const handleMouseUp = (e) => {
+      if (isDragging.current) {
+        endDrag(e.clientX, e.clientY);
+      }
+    };
+
+    const handleTouchMove = (e) => {
+      if (isDragging.current) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        moveDrag(touch.clientX, touch.clientY);
+      }
+    };
+
+    const handleTouchEnd = (e) => {
+      if (isDragging.current) {
+        const touch = e.changedTouches[0];
+        endDrag(touch.clientX, touch.clientY);
+      }
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, []);
+
   return (
     <div className="relative h-full w-full pt-8">
       {/* Center word */}
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
         <div className="text-center space-y-4">
           <div
+            data-center-word
             draggable
             onDragStart={(e) => {
               e.stopPropagation();
-              handleDragStart(e, exercise.word);
+              startDrag(e, exercise.word, 'center', e.clientX, e.clientY);
             }}
             onDragOver={(e) => {
               e.preventDefault();
@@ -69,7 +187,21 @@ const MatchExercise = ({
                 checkAndSubmit(draggedItemRef.current, exercise.word, draggedItemRef.current);
               }
             }}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              startDrag(e, exercise.word, 'center', e.clientX, e.clientY);
+            }}
+            onTouchStart={(e) => {
+              e.preventDefault();
+              const touch = e.touches[0];
+              startDrag(e, exercise.word, 'center', touch.clientX, touch.clientY);
+            }}
             className={`cursor-move transition-all ${matchHoverZone === 'center' ? 'scale-110' : ''}`}
+            style={{ 
+              touchAction: 'none', 
+              userSelect: 'none',
+              opacity: dragPosition && dragSource.current === 'center' ? 0.3 : 1
+            }}
           >
             <div className={`text-6xl font-bold px-8 py-6 rounded-2xl shadow-lg select-none transition-all ${
               matchHoverZone === 'center' ? `${theme.card} border-4 border-amber-400` : theme.card
@@ -93,10 +225,12 @@ const MatchExercise = ({
         return (
           <div
             key={`${option}-${idx}`}
+            data-corner-option
+            data-option-value={option}
             draggable
             onDragStart={(e) => {
               e.stopPropagation();
-              handleDragStart(e, option);
+              startDrag(e, option, 'corner', e.clientX, e.clientY);
             }}
             onDragOver={(e) => {
               e.preventDefault();
@@ -126,6 +260,15 @@ const MatchExercise = ({
                 checkAndSubmit(option, draggedItemRef.current, option);
               }
             }}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              startDrag(e, option, 'corner', e.clientX, e.clientY);
+            }}
+            onTouchStart={(e) => {
+              e.preventDefault();
+              const touch = e.touches[0];
+              startDrag(e, option, 'corner', touch.clientX, touch.clientY);
+            }}
             className={`absolute ${positions[idx]} w-36 h-28 p-3 rounded-xl text-lg font-semibold flex items-center justify-center text-center transition-all border-4 cursor-move z-0 ${
               matchDroppedOn === option
                 ? feedback === "correct"
@@ -135,17 +278,43 @@ const MatchExercise = ({
                 ? `${theme.card} border-amber-400 border-solid scale-105 ${theme.text}`
                 : `${theme.card} border-transparent ${theme.textSecondary}`
             }`}
+            style={{ 
+              touchAction: 'none', 
+              userSelect: 'none',
+              opacity: dragPosition && dragSource.current === 'corner' && draggedText === option ? 0.3 : 1
+            }}
           >
             {option}
           </div>
         );
       })}
+
+      {/* Floating drag preview */}
+      {dragPosition && (
+        <div
+          className="fixed pointer-events-none z-50"
+          style={{
+            left: dragPosition.x,
+            top: dragPosition.y,
+            transform: 'translate(-50%, -50%)'
+          }}
+        >
+          {dragSource.current === 'center' ? (
+            <div className={`text-6xl font-bold px-8 py-6 rounded-2xl shadow-lg select-none ${theme.card} ${theme.text} opacity-80`}>
+              {draggedText}
+            </div>
+          ) : (
+            <div className={`w-36 h-28 p-3 rounded-xl text-lg font-semibold flex items-center justify-center text-center border-4 border-transparent ${theme.card} ${theme.textSecondary} opacity-80`}>
+              {draggedText}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
 
 export default MatchExercise;
-
 
 // import React, { useState, useEffect, useMemo } from 'react';
 // import { useTheme } from '../contexts/ThemeContext';
@@ -168,18 +337,16 @@ export default MatchExercise;
 //     // eslint-disable-next-line react-hooks/exhaustive-deps
 //   }, [currentStage, currentExercise]);
 
-// useEffect(() => {
-//   // Clear immediately when exercise changes, no delay
-//   setMatchDroppedOn(null);
-//   setMatchHoverZone(null);
-// }, [currentExercise]);
+//   useEffect(() => {
+//     // Clear immediately when exercise changes
+//     setMatchDroppedOn(null);
+//     setMatchHoverZone(null);
+//   }, [currentExercise]);
 
-// const checkAndSubmit = (draggedAnswer, droppedAnswer, targetOption) => {
-//   console.log('Target option box:', targetOption);
-//   setMatchDroppedOn(targetOption);
-  
-//   handleDrop({ preventDefault: () => {} }, targetOption);
-// };
+//   const checkAndSubmit = (draggedAnswer, droppedAnswer, targetOption) => {
+//     setMatchDroppedOn(targetOption);
+//     handleDrop({ preventDefault: () => {} }, targetOption);
+//   };
 
 //   return (
 //     <div className="relative h-full w-full pt-8">
@@ -222,13 +389,13 @@ export default MatchExercise;
 //             }}
 //             className={`cursor-move transition-all ${matchHoverZone === 'center' ? 'scale-110' : ''}`}
 //           >
-//             <div className={`text-6xl font-bold text-blue-900 px-8 py-6 rounded-2xl shadow-lg select-none transition-all ${
-//               matchHoverZone === 'center' ? 'bg-blue-100 border-4 border-blue-400' : 'bg-white'
-//             }`}>
+//             <div className={`text-6xl font-bold px-8 py-6 rounded-2xl shadow-lg select-none transition-all ${
+//               matchHoverZone === 'center' ? `${theme.card} border-4 border-amber-400` : theme.card
+//             } ${theme.text}`}>
 //               {exercise.word}
 //             </div>
 //           </div>
-//           <div className="text-lg text-gray-600">Drag word to answer or answer to word</div>
+//           <div className={`text-lg ${theme.textSecondary}`}>Drag word to answer or answer to word</div>
 //         </div>
 //       </div>
 
@@ -283,8 +450,8 @@ export default MatchExercise;
 //                   ? "bg-green-500 text-white border-green-600 scale-110"
 //                   : "bg-red-500 text-white border-red-600"
 //                 : matchHoverZone === option
-//                 ? "border-blue-400 bg-blue-100 border-solid scale-105"
-//                 : "border-gray-300 bg-gray-50 border-dashed"
+//                 ? `${theme.card} border-amber-400 border-solid scale-105 ${theme.text}`
+//                 : `${theme.card} border-transparent ${theme.textSecondary}`
 //             }`}
 //           >
 //             {option}

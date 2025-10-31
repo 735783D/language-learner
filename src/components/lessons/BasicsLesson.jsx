@@ -24,28 +24,41 @@ const BasicsLesson = ({ onBack }) => {
     e.dataTransfer.setData('text/plain', item);
   };
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setDropZoneActive(false);
-    
-    if (!draggedItemRef.current) return;
+const handleDrop = (e) => {
+  console.log('handleDrop called, draggedItemRef.current:', draggedItemRef.current);
+  e.preventDefault();
+  setDropZoneActive(false);
+  
+  if (!draggedItemRef.current) {
+    console.log('Early return: no draggedItemRef');
+    return;
+  }
 
-    // Character exercises are always correct (exposure-based learning)
-    setFeedback("correct");
-    setScore(score + 1);
+  console.log('Setting feedback to correct');
+  // Character exercises are always correct (exposure-based learning)
+  setFeedback("correct");
+  setScore(prevScore => prevScore + 1);
 
-    setTimeout(() => {
-      if (currentExercise < exercises.length - 1) {
-        setCurrentExercise(currentExercise + 1);
+  setTimeout(() => {
+    setCurrentExercise(prevExercise => {
+      console.log('Timeout fired. prevExercise:', prevExercise, 'exercises.length:', exercises.length);
+      if (prevExercise < exercises.length - 1) {
+        console.log('Advancing to next exercise:', prevExercise + 1);
+        return prevExercise + 1;
       } else {
         // Lesson complete!
-        alert(`Lesson complete! Score: ${score + 1}/${exercises.length}`);
+        setScore(finalScore => {
+          alert(`Lesson complete! Score: ${finalScore}/${exercises.length}`);
+          return finalScore;
+        });
         onBack();
+        return prevExercise;
       }
-      setFeedback(null);
-      draggedItemRef.current = null;
-    }, 1500);
-  };
+    });
+    setFeedback(null);
+    draggedItemRef.current = null;
+  }, 1500);
+};
 
   return (
     <div className={`fixed inset-0 ${theme.bg} overflow-hidden`} style={{userSelect: 'none', WebkitUserSelect: 'none'}}>
@@ -107,6 +120,7 @@ const BasicsLesson = ({ onBack }) => {
           setDropZoneActive={setDropZoneActive}
           handleDragStart={handleDragStart}
           handleDrop={handleDrop}
+          draggedItemRef={draggedItemRef}
         />
       </div>
 
