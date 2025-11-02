@@ -5,7 +5,7 @@ import BuildExercise from '../BuildExercise';
 import { useTheme } from '../../contexts/ThemeContext';
 import ThemeToggle from '../ThemeToggle';
 
-const SentencesLesson = ({ onBack }) => {
+const SentencesLesson = ({ onBack, languageData }) => {
   const { theme } = useTheme();
   const [currentExercise, setCurrentExercise] = useState(0);
   const [score, setScore] = useState(0);
@@ -15,10 +15,13 @@ const SentencesLesson = ({ onBack }) => {
   const [dropZoneActive, setDropZoneActive] = useState(false);
   const [selectedWords, setSelectedWords] = useState([]);
 
+  const stageData = languageData[3];
+
   // Generate a random set of sentence exercises
   const exercises = useMemo(() => {
-    return [...sentencesPool].sort(() => Math.random() - 0.5).slice(0, 8);
-  }, []);
+    if (!stageData?.exercises) return [];
+    return [...stageData.exercises].sort(() => Math.random() - 0.5).slice(0, 10);
+  }, [stageData]);
 
   const exercise = exercises[currentExercise];
   const requiredScore = 6; // Need 6 out of 8 to pass

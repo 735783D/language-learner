@@ -1,20 +1,33 @@
 import React, { useState, useRef } from 'react';
 import { Star, X, Check } from 'lucide-react';
-import { spanishStages } from '../../data/spanishData';
+// import { spanishStages } from '../../data/spanishData';
 import CharacterExercise from '../CharacterExercise';
 import { useTheme } from '../../contexts/ThemeContext';
 import ThemeToggle from '../ThemeToggle';
 
-const BasicsLesson = ({ onBack }) => {
+const BasicsLesson = ({ onBack, languageData }) => {
   const { theme } = useTheme();
   const [currentExercise, setCurrentExercise] = useState(0);
   const [score, setScore] = useState(0);
-  // const [strikes, setStrikes] = useState(0);
   const [feedback, setFeedback] = useState(null);
   const draggedItemRef = useRef(null);
   const [dropZoneActive, setDropZoneActive] = useState(false);
 
-  const stageData = spanishStages[1]; // Stage 1 is characters
+  // Debugging logs
+  console.log('BasicsLesson - languageData:', languageData);
+  console.log('BasicsLesson - languageData type:', typeof languageData);
+  
+  // Check for data after all hooks are called
+  if (!languageData || !languageData[1]) {
+    console.error('No language data provided to BasicsLesson!');
+    return <div className={`fixed inset-0 ${theme.bg} flex items-center justify-center`}>
+      <div className={`text-2xl ${theme.text}`}>Error: No language data</div>
+    </div>;
+  }
+  
+  const stageData = languageData[1];
+  console.log('BasicsLesson - stageData:', stageData);
+  
   const exercises = stageData.exercises;
   const exercise = exercises[currentExercise];
 
@@ -23,6 +36,8 @@ const BasicsLesson = ({ onBack }) => {
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', item);
   };
+
+  // ... rest of your code
 
 const handleDrop = (e) => {
   console.log('handleDrop called, draggedItemRef.current:', draggedItemRef.current);

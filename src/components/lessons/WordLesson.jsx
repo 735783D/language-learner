@@ -1,25 +1,28 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { Star, X, Check } from 'lucide-react';
-import { tinyWordsPool } from '../../data/spanishData';
+// import { tinyWordsPool } from '../../data/spanishData';
 import MatchExercise from '../MatchExercise';
 import { useTheme } from '../../contexts/ThemeContext';
 import ThemeToggle from '../ThemeToggle';
 
-const WordsLesson = ({ onBack }) => {
+const WordsLesson = ({ onBack, languageData }) => {
   const { theme } = useTheme();
   const [currentExercise, setCurrentExercise] = useState(0);
   const [score, setScore] = useState(0);
   const [strikes, setStrikes] = useState(0);
   const [feedback, setFeedback] = useState(null);
   const draggedItemRef = useRef(null);
+  
+  const stageData = languageData[2];
 
-  // Generate a random set of word exercises
+  // Generate a random set of word exercises from language data
   const exercises = useMemo(() => {
-    return [...tinyWordsPool].sort(() => Math.random() - 0.5).slice(0, 10);
-  }, []);
+    if (!stageData?.exercises) return [];
+    return [...stageData.exercises].sort(() => Math.random() - 0.5).slice(0, 10);
+  }, [stageData]);
 
   const exercise = exercises[currentExercise];
-  const requiredScore = 7; // Need 7 out of 10 to pass
+  const requiredScore = stageData?.requiredScore || 7;
 
   const handleDragStart = (e, item) => {
     draggedItemRef.current = item;

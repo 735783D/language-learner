@@ -145,7 +145,7 @@ const MatchExercise = ({
       document.removeEventListener('touchmove', handleTouchMove);
       document.removeEventListener('touchend', handleTouchEnd);
     };
-  }, []);
+  });
 
   return (
     <div className="relative h-full w-full pt-8">
@@ -269,7 +269,7 @@ const MatchExercise = ({
               const touch = e.touches[0];
               startDrag(e, option, 'corner', touch.clientX, touch.clientY);
             }}
-            className={`absolute ${positions[idx]} w-36 h-28 p-3 rounded-xl text-lg font-semibold flex items-center justify-center text-center transition-all border-4 cursor-move z-0 ${
+            className={`absolute ${positions[idx]} w-36 h-28 p-3 rounded-xl text-3xl font-bold flex items-center justify-center text-center transition-all border-4 cursor-move z-0 ${
               matchDroppedOn === option
                 ? feedback === "correct"
                   ? "bg-green-500 text-white border-green-600 scale-110"
