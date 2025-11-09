@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Check, Volume2 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
@@ -10,6 +9,9 @@ const CharacterExercise = ({ exercise, dropZoneActive, setDropZoneActive, handle
   const [dragPosition, setDragPosition] = useState(null);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const audioRef = useRef(null);
+
+  // Support both single letters (char) and multi-letter combinations (combo)
+  const displayChar = exercise.char || exercise.combo;
 
   const startDrag = (e, char, clientX, clientY) => {
     console.log('Starting drag:', char, 'draggedItemRef:', draggedItemRef);
@@ -78,20 +80,33 @@ const CharacterExercise = ({ exercise, dropZoneActive, setDropZoneActive, handle
   };
 
   const playSound = useCallback(() => {
+    console.log('playSound called');
+    console.log('exercise.sound_file:', exercise.sound_file);
+    console.log('audioRef.current:', audioRef.current);
+    
     if (exercise.sound_file && audioRef.current) {
-      audioRef.current.play().catch(err => {
-        console.log('Audio play failed (this is normal on first load):', err);
-      });
+      console.log('Attempting to play:', exercise.sound_file);
+      audioRef.current.play()
+        .then(() => console.log('Audio played successfully'))
+        .catch(err => {
+          console.log('Audio play failed:', err);
+        });
+    } else {
+      console.log('Cannot play - missing sound_file or audioRef');
     }
   }, [exercise.sound_file]);
 
   useEffect(() => {
+    console.log('useEffect triggered, exercise:', exercise);
     if (exercise.sound_file && audioRef.current) {
+      console.log('Loading audio file...');
       audioRef.current.load();
       const timer = setTimeout(() => {
         playSound();
       }, 100);
       return () => clearTimeout(timer);
+    } else {
+      console.log('No sound file for this exercise');
     }
   }, [exercise, playSound]);
 
@@ -135,19 +150,19 @@ const CharacterExercise = ({ exercise, dropZoneActive, setDropZoneActive, handle
       document.removeEventListener('touchmove', handleTouchMove);
       document.removeEventListener('touchend', handleTouchEnd);
     };
-  });
+  }, );
 
   return (
     <div className="flex flex-col items-center justify-between h-full py-8">
       {exercise.sound_file && (
-        <audio ref={audioRef} src={exercise.sound_file} preload="auto" />
+        <audio ref={audioRef} src={encodeURI(exercise.sound_file)} preload="auto" />
       )}
 
       <div className="flex-1 flex flex-col items-center justify-center space-y-6">
         <div
           draggable
           onDragStart={(e) => {
-            startDrag(e, exercise.char, e.clientX, e.clientY);
+            startDrag(e, displayChar, e.clientX, e.clientY);
             setDropZoneActive(false);
           }}
           onDragEnd={(e) => {
@@ -155,12 +170,12 @@ const CharacterExercise = ({ exercise, dropZoneActive, setDropZoneActive, handle
           }}
           onMouseDown={(e) => {
             e.preventDefault();
-            startDrag(e, exercise.char, e.clientX, e.clientY);
+            startDrag(e, displayChar, e.clientX, e.clientY);
           }}
           onTouchStart={(e) => {
             e.preventDefault();
             const touch = e.touches[0];
-            startDrag(e, exercise.char, touch.clientX, touch.clientY);
+            startDrag(e, displayChar, touch.clientX, touch.clientY);
           }}
           className="cursor-move touch-none relative"
           style={{ 
@@ -169,7 +184,7 @@ const CharacterExercise = ({ exercise, dropZoneActive, setDropZoneActive, handle
             opacity: dragPosition ? 0.3 : 1
           }}
         >
-          <div className={`text-9xl font-bold select-none ${theme.accent}`}>{exercise.char}</div>
+          <div className={`text-9xl font-bold select-none ${theme.accent}`}>{displayChar}</div>
         </div>
         <div className="space-y-3 text-center">
           <div className={`text-xl ${theme.textSecondary} flex items-center justify-center gap-3`}>
@@ -183,7 +198,14 @@ const CharacterExercise = ({ exercise, dropZoneActive, setDropZoneActive, handle
                 <Volume2 className={`w-6 h-6 ${theme.accent}`} />
               </button>
             )}
+
           </div>
+        </div>
+        <div className="space-y-3 text-center">
+          <div className={`text-xl ${theme.textSecondary} flex items-center justify-center gap-3`}>
+            <span>English like: <span className="font-semibold">{exercise.e_sound}</span></span>
+          </div>
+
           <div className={`${theme.card} p-5 rounded-xl`}>
             <div className={`text-2xl font-bold ${theme.text} mb-1`}>{exercise.example}</div>
             <div className={`text-lg ${theme.textSecondary}`}>{exercise.translation}</div>
@@ -230,7 +252,7 @@ const CharacterExercise = ({ exercise, dropZoneActive, setDropZoneActive, handle
           }}
         >
           <div className={`text-9xl font-bold select-none ${theme.accent} opacity-80`}>
-            {exercise.char}
+            {displayChar}
           </div>
         </div>
       )}
@@ -239,31 +261,25 @@ const CharacterExercise = ({ exercise, dropZoneActive, setDropZoneActive, handle
 };
 
 export default CharacterExercise;
-// import React, { useRef, useState, useEffect } from 'react';
-// import { Check } from 'lucide-react';
+
+
+// import React, { useRef, useState, useEffect, useCallback } from 'react';
+// import { Check, Volume2 } from 'lucide-react';
 // import { useTheme } from '../contexts/ThemeContext';
 
 // const CharacterExercise = ({ exercise, dropZoneActive, setDropZoneActive, handleDragStart, handleDrop, draggedItemRef }) => {
-//   const audioRef = useRef(null);
 //   const { theme } = useTheme();
 //   const isDragging = useRef(false);
 //   const dragData = useRef(null);
 //   const [dragPosition, setDragPosition] = useState(null);
 //   const [offset, setOffset] = useState({ x: 0, y: 0 });
-
-//   useEffect(() => {
-//     if (exercise.sound_file && audioRef.current) {
-//       audioRef.current.src = exercise.sound_file;
-//       audioRef.current.play().catch(err => console.log('Audio play failed:', err));
-//     }
-//   }, [exercise]);
+//   const audioRef = useRef(null);
 
 //   const startDrag = (e, char, clientX, clientY) => {
 //     console.log('Starting drag:', char, 'draggedItemRef:', draggedItemRef);
 //     isDragging.current = true;
 //     dragData.current = char;
     
-//     // Calculate offset from element center
 //     const target = e.currentTarget;
 //     const rect = target.getBoundingClientRect();
 //     setOffset({
@@ -271,14 +287,11 @@ export default CharacterExercise;
 //       y: clientY - (rect.top + rect.height / 2)
 //     });
     
-//     // Set initial position
 //     setDragPosition({ x: clientX - (clientX - (rect.left + rect.width / 2)), y: clientY - (clientY - (rect.top + rect.height / 2)) });
     
-//     // Only call handleDragStart for actual drag events
 //     if (e.dataTransfer) {
 //       handleDragStart(e, char);
 //     } else if (draggedItemRef) {
-//       // For mouse/touch, set the ref immediately
 //       draggedItemRef.current = char;
 //       console.log('Set draggedItemRef.current to:', char);
 //     }
@@ -288,7 +301,6 @@ export default CharacterExercise;
 //     if (!isDragging.current) return;
 //     setDragPosition({ x: clientX - offset.x, y: clientY - offset.y });
     
-//     // Check if over drop zone
 //     const dropZone = document.querySelector('[data-drop-circle]');
 //     if (dropZone) {
 //       const rect = dropZone.getBoundingClientRect();
@@ -329,7 +341,24 @@ export default CharacterExercise;
 //     setDropZoneActive(false);
 //   };
 
-//   // Set up document-level event listeners for mouse/touch move and end
+//   const playSound = useCallback(() => {
+//     if (exercise.sound_file && audioRef.current) {
+//       audioRef.current.play().catch(err => {
+//         console.log('Audio play failed (this is normal on first load):', err);
+//       });
+//     }
+//   }, [exercise.sound_file]);
+
+//   useEffect(() => {
+//     if (exercise.sound_file && audioRef.current) {
+//       audioRef.current.load();
+//       const timer = setTimeout(() => {
+//         playSound();
+//       }, 100);
+//       return () => clearTimeout(timer);
+//     }
+//   }, [exercise, playSound]);
+
 //   useEffect(() => {
 //     const handleMouseMove = (e) => {
 //       if (isDragging.current) {
@@ -374,6 +403,10 @@ export default CharacterExercise;
 
 //   return (
 //     <div className="flex flex-col items-center justify-between h-full py-8">
+//       {exercise.sound_file && (
+//         <audio ref={audioRef} src={exercise.sound_file} preload="auto" />
+//       )}
+
 //       <div className="flex-1 flex flex-col items-center justify-center space-y-6">
 //         <div
 //           draggable
@@ -403,8 +436,17 @@ export default CharacterExercise;
 //           <div className={`text-9xl font-bold select-none ${theme.accent}`}>{exercise.char}</div>
 //         </div>
 //         <div className="space-y-3 text-center">
-//           <div className={`text-xl ${theme.textSecondary}`}>
-//             Sounds like: <span className="font-semibold">{exercise.sound}</span>
+//           <div className={`text-xl ${theme.textSecondary} flex items-center justify-center gap-3`}>
+//             <span>Sounds like: <span className="font-semibold">{exercise.sound}</span></span>
+//             {exercise.sound_file && (
+//               <button
+//                 onClick={playSound}
+//                 className={`p-2 rounded-full ${theme.card} hover:scale-110 transition-transform`}
+//                 aria-label="Play sound"
+//               >
+//                 <Volume2 className={`w-6 h-6 ${theme.accent}`} />
+//               </button>
+//             )}
 //           </div>
 //           <div className={`${theme.card} p-5 rounded-xl`}>
 //             <div className={`text-2xl font-bold ${theme.text} mb-1`}>{exercise.example}</div>
@@ -442,7 +484,6 @@ export default CharacterExercise;
 //         <Check className={`w-16 h-16 ${dropZoneActive ? 'text-amber-400' : theme.textSecondary}`} />
 //       </div>
 
-//       {/* Floating drag preview for mouse/touch */}
 //       {dragPosition && (
 //         <div
 //           className="fixed pointer-events-none z-50"
@@ -462,61 +503,3 @@ export default CharacterExercise;
 // };
 
 // export default CharacterExercise;
-
-// // import React from 'react';
-// // import { Check } from 'lucide-react';
-// // import { useTheme } from '../contexts/ThemeContext';
-
-// // const CharacterExercise = ({ exercise, dropZoneActive, setDropZoneActive, handleDragStart, handleDrop }) => {
-// //   const { theme } = useTheme();
-
-// //   return (
-// //     <div className="flex flex-col items-center justify-between h-full py-8">
-// //       <div className="flex-1 flex flex-col items-center justify-center space-y-6">
-// //         <div
-// //           draggable
-// //           onDragStart={(e) => handleDragStart(e, exercise.char)}
-// //           className="cursor-move touch-none"
-// //         >
-// //           <div className={`text-9xl font-bold select-none ${theme.accent}`}>{exercise.char}</div>
-// //         </div>
-// //         <div className="space-y-3 text-center">
-// //           <div className={`text-xl ${theme.textSecondary}`}>
-// //             Sounds like: <span className="font-semibold">{exercise.sound}</span>
-// //           </div>
-// //           <div className={`${theme.card} p-5 rounded-xl`}>
-// //             <div className={`text-2xl font-bold ${theme.text} mb-1`}>{exercise.example}</div>
-// //             <div className={`text-lg ${theme.textSecondary}`}>{exercise.translation}</div>
-// //           </div>
-// //         </div>
-// //         <div className={`text-sm ${theme.textSecondary} mt-4`}>Drag to the circle below to continue</div>
-// //       </div>
-      
-// //       <div
-// //         onDragOver={(e) => {
-// //           e.preventDefault();
-// //           e.stopPropagation();
-// //           setDropZoneActive(true);
-// //         }}
-// //         onDragEnter={(e) => {
-// //           e.preventDefault();
-// //           e.stopPropagation();
-// //           setDropZoneActive(true);
-// //         }}
-// //         onDragLeave={(e) => {
-// //           e.preventDefault();
-// //           e.stopPropagation();
-// //           setDropZoneActive(false);
-// //         }}
-// //         onDrop={(e) => handleDrop(e)}
-// //         className={`w-40 h-40 rounded-full border-4 border-dashed flex items-center justify-center transition-all ${
-// //           dropZoneActive ? 'border-amber-400 bg-amber-400/20 scale-110' : `border-transparent ${theme.card}`
-// //         }`}
-// //       >
-// //         <Check className={`w-16 h-16 ${dropZoneActive ? 'text-amber-400' : theme.textSecondary}`} />
-// //       </div>
-// //     </div>
-// //   );
-// // };
-
-// // export default CharacterExercise;
