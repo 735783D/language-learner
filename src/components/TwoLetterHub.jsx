@@ -1,46 +1,9 @@
-import React, { createContext, useContext, useState } from 'react';
-import { BookOpen, Layers, Hash, List, FileCheck, FileText, Files, ArrowLeft, Sun, Moon } from 'lucide-react';
-
-const ThemeContext = createContext();
-
-const useTheme = () => {
-  return useContext(ThemeContext);
-};
-
-const ThemeToggle = () => {
-  const context = useTheme();
-  const isDark = context.isDark;
-  const toggleTheme = context.toggleTheme;
-  
-  return (
-    <button
-      onClick={toggleTheme}
-      className="fixed top-4 right-4 z-50 p-3 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
-    >
-      {isDark ? (
-        <Sun className="w-6 h-6 text-yellow-400" />
-      ) : (
-        <Moon className="w-6 h-6 text-gray-800" />
-      )}
-    </button>
-  );
-};
+import { BookOpen, Layers, List, FileCheck, FileText, Files, ArrowLeft } from 'lucide-react';
+import ThemeToggle from './ThemeToggle';
+import { useTheme } from '../contexts/ThemeContext';
 
 const TwoLetterHub = ({ onSelectPractice, onBack, languageName }) => {
-  const [isDark, setIsDark] = useState(false);
-  
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-  };
-  
-  const theme = {
-    bg: isDark ? 'bg-gray-900' : 'bg-gradient-to-br from-purple-50 to-pink-100',
-    text: isDark ? 'text-white' : 'text-gray-900',
-    textSecondary: isDark ? 'text-gray-400' : 'text-gray-600',
-    card: isDark ? 'bg-gray-800' : 'bg-white',
-    button: isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900',
-    progressBg: isDark ? 'bg-gray-700' : 'bg-gray-200'
-  };
+  const { theme } = useTheme();
 
   const practices = [
     {
@@ -50,7 +13,18 @@ const TwoLetterHub = ({ onSelectPractice, onBack, languageName }) => {
       icon: BookOpen,
       color: "bg-purple-500",
       progress: 0,
-      locked: false
+      locked: false,
+      type: "drag"
+    },
+    {
+      id: 'full-audio',
+      title: "Full Set - Audio",
+      description: "Match sounds to combinations",
+      icon: BookOpen,
+      color: "bg-purple-600",
+      progress: 0,
+      locked: false,
+      type: "audio"
     },
     {
       id: 'cafv',
@@ -59,16 +33,38 @@ const TwoLetterHub = ({ onSelectPractice, onBack, languageName }) => {
       icon: Layers,
       color: "bg-violet-500",
       progress: 0,
-      locked: false
+      locked: false,
+      type: "drag"
+    },
+    {
+      id: 'cafv-audio',
+      title: "CA through FV - Audio",
+      description: "Match sounds",
+      icon: Layers,
+      color: "bg-violet-600",
+      progress: 0,
+      locked: false,
+      type: "audio"
     },
     {
       id: 'halv',
       title: "HA through LV",
       description: "H, K, L combinations",
-      icon: Hash,
+      icon: Layers,
       color: "bg-fuchsia-500",
       progress: 0,
-      locked: false
+      locked: false,
+      type: "drag"
+    },
+    {
+      id: 'halv-audio',
+      title: "HA through LV - Audio",
+      description: "Match sounds",
+      icon: Layers,
+      color: "bg-fuchsia-600",
+      progress: 0,
+      locked: false,
+      type: "audio"
     },
     {
       id: 'mapv',
@@ -77,7 +73,18 @@ const TwoLetterHub = ({ onSelectPractice, onBack, languageName }) => {
       icon: List,
       color: "bg-pink-500",
       progress: 0,
-      locked: false
+      locked: false,
+      type: "drag"
+    },
+    {
+      id: 'mapv-audio',
+      title: "MA through PV - Audio",
+      description: "Match sounds",
+      icon: List,
+      color: "bg-pink-600",
+      progress: 0,
+      locked: false,
+      type: "audio"
     },
     {
       id: 'ratv',
@@ -86,7 +93,18 @@ const TwoLetterHub = ({ onSelectPractice, onBack, languageName }) => {
       icon: FileCheck,
       color: "bg-rose-500",
       progress: 0,
-      locked: false
+      locked: false,
+      type: "drag"
+    },
+    {
+      id: 'ratv-audio',
+      title: "RA through TV - Audio",
+      description: "Match sounds",
+      icon: FileCheck,
+      color: "bg-rose-600",
+      progress: 0,
+      locked: false,
+      type: "audio"
     },
     {
       id: 'wayv',
@@ -95,7 +113,18 @@ const TwoLetterHub = ({ onSelectPractice, onBack, languageName }) => {
       icon: FileText,
       color: "bg-red-500",
       progress: 0,
-      locked: false
+      locked: false,
+      type: "drag"
+    },
+    {
+      id: 'wayv-audio',
+      title: "WA through YV - Audio",
+      description: "Match sounds",
+      icon: FileText,
+      color: "bg-red-600",
+      progress: 0,
+      locked: false,
+      type: "audio"
     },
     {
       id: 'afet',
@@ -104,7 +133,18 @@ const TwoLetterHub = ({ onSelectPractice, onBack, languageName }) => {
       icon: Files,
       color: "bg-orange-500",
       progress: 0,
-      locked: false
+      locked: false,
+      type: "drag"
+    },
+    {
+      id: 'afet-audio',
+      title: "AF through ET - Audio",
+      description: "Match sounds",
+      icon: Files,
+      color: "bg-orange-600",
+      progress: 0,
+      locked: false,
+      type: "audio"
     },
     {
       id: 'ifvt',
@@ -113,12 +153,22 @@ const TwoLetterHub = ({ onSelectPractice, onBack, languageName }) => {
       icon: BookOpen,
       color: "bg-amber-500",
       progress: 0,
-      locked: false
+      locked: false,
+      type: "drag"
+    },
+    {
+      id: 'ifvt-audio',
+      title: "IF through VT - Audio",
+      description: "Match sounds",
+      icon: BookOpen,
+      color: "bg-amber-600",
+      progress: 0,
+      locked: false,
+      type: "audio"
     }
   ];
 
   return (
-    <ThemeContext.Provider value={{ isDark: isDark, toggleTheme: toggleTheme }}>
       <div className={`min-h-screen ${theme.bg} relative overflow-hidden`}>
         <ThemeToggle />
 
@@ -191,56 +241,55 @@ const TwoLetterHub = ({ onSelectPractice, onBack, languageName }) => {
           </div>
         </div>
 
-        <style>{`
-          .blob {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(40px);
-            opacity: 0.3;
-            animation: float 20s ease-in-out infinite;
-          }
+      <style>{`
+        .blob {
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(40px);
+          opacity: 0.3;
+          animation: float 20s ease-in-out infinite;
+        }
 
-          .blob-1 {
-            width: 300px;
-            height: 300px;
-            background: linear-gradient(135deg, #a855f7, #9333ea);
-            top: -100px;
-            left: -100px;
-            animation-delay: 0s;
-          }
+        .blob-1 {
+          width: 300px;
+          height: 300px;
+          background: linear-gradient(135deg, #3b82f6, #2563eb);
+          top: -100px;
+          left: -100px;
+          animation-delay: 0s;
+        }
 
-          .blob-2 {
-            width: 400px;
-            height: 400px;
-            background: linear-gradient(135deg, #ec4899, #db2777);
-            top: 20%;
-            right: -150px;
-            animation-delay: 7s;
-          }
+        .blob-2 {
+          width: 400px;
+          height: 400px;
+          background: linear-gradient(135deg, #06b6d4, #0891b2);
+          top: 20%;
+          right: -150px;
+          animation-delay: 7s;
+        }
 
-          .blob-3 {
-            width: 350px;
-            height: 350px;
-            background: linear-gradient(135deg, #f43f5e, #e11d48);
-            bottom: -100px;
-            left: 20%;
-            animation-delay: 14s;
-          }
+        .blob-3 {
+          width: 350px;
+          height: 350px;
+          background: linear-gradient(135deg, #14b8a6, #0d9488);
+          bottom: -100px;
+          left: 20%;
+          animation-delay: 14s;
+        }
 
-          @keyframes float {
-            0%, 100% {
-              transform: translate(0, 0) scale(1);
-            }
-            33% {
-              transform: translate(30px, -30px) scale(1.1);
-            }
-            66% {
-              transform: translate(-20px, 20px) scale(0.9);
-            }
+        @keyframes float {
+          0%, 100% {
+            transform: translate(0, 0) scale(1);
           }
-        `}</style>
-      </div>
-    </ThemeContext.Provider>
+          33% {
+            transform: translate(30px, -30px) scale(1.1);
+          }
+          66% {
+            transform: translate(-20px, 20px) scale(0.9);
+          }
+        }
+      `}</style>
+    </div>
   );
 };
 

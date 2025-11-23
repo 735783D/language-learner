@@ -1,7 +1,7 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { Star, X, Check } from 'lucide-react';
-import { sentencesPool } from '../../data/spanishData';
 import BuildExercise from '../BuildExercise';
+import CompletionModal from '../CompletionModal';
 import { useTheme } from '../../contexts/ThemeContext';
 import ThemeToggle from '../ThemeToggle';
 
@@ -11,6 +11,8 @@ const SentencesLesson = ({ onBack, languageData }) => {
   const [score, setScore] = useState(0);
   const [strikes, setStrikes] = useState(0);
   const [feedback, setFeedback] = useState(null);
+  const [showCompletion, setShowCompletion] = useState(false);
+  const [showFailure, setShowFailure] = useState(false);
   const draggedItemRef = useRef(null);
   const [dropZoneActive, setDropZoneActive] = useState(false);
   const [selectedWords, setSelectedWords] = useState([]);
@@ -24,7 +26,7 @@ const SentencesLesson = ({ onBack, languageData }) => {
   }, [stageData]);
 
   const exercise = exercises[currentExercise];
-  const requiredScore = 6; // Need 6 out of 8 to pass
+  const requiredScore = 6; // Need 6 out of 10 to pass
 
   const handleBuildComplete = (isCorrect) => {
     if (isCorrect) {
@@ -37,11 +39,7 @@ const SentencesLesson = ({ onBack, languageData }) => {
       
       if (newStrikes >= 3) {
         setTimeout(() => {
-          alert('Three strikes! Restarting lesson.');
-          setCurrentExercise(0);
-          setScore(0);
-          setStrikes(0);
-          setSelectedWords([]);
+          setShowFailure(true);
         }, 1500);
         return;
       }
@@ -50,104 +48,171 @@ const SentencesLesson = ({ onBack, languageData }) => {
     setTimeout(() => {
       if (currentExercise < exercises.length - 1) {
         setCurrentExercise(currentExercise + 1);
+        setFeedback(null);
+        setSelectedWords([]);
       } else {
-        // Lesson complete
-        const finalScore = score + (isCorrect ? 1 : 0);
-        if (finalScore >= requiredScore) {
-          alert(`Lesson complete! You passed with ${finalScore}/${exercises.length}`);
-        } else {
-          alert(`Lesson complete. You got ${finalScore}/${exercises.length}. Need ${requiredScore} to pass. Try again!`);
-        }
-        onBack();
+        // Lesson complete - show completion modal
+        setShowCompletion(true);
       }
-      setFeedback(null);
-      setSelectedWords([]);
     }, 1500);
   };
 
-return (
-  <div className={`fixed inset-0 ${theme.bg} overflow-hidden`} style={{userSelect: 'none', WebkitUserSelect: 'none'}}>
-    <style>{`
-      @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
-        20%, 40%, 60%, 80% { transform: translateX(10px); }
-      }
-      .animate-shake {
-        animation: shake 0.5s;
-        background-color: #ef4444 !important;
-      }
-    `}</style>
+  const handleRestart = () => {
+    setCurrentExercise(0);
+    setScore(0);
+    setStrikes(0);
+    setFeedback(null);
+    setSelectedWords([]);
+    setShowCompletion(false);
+    setShowFailure(false);
+  };
 
-    <ThemeToggle />
+  const handleFailureRestart = () => {
+    setCurrentExercise(0);
+    setScore(0);
+    setStrikes(0);
+    setFeedback(null);
+    setSelectedWords([]);
+    setShowFailure(false);
+  };
 
-    {/* Back button - theme aware */}
-    <button
-      onClick={onBack}
-      className={`fixed top-4 left-4 z-50 px-4 py-2 rounded-lg shadow hover:shadow-md transition ${theme.button}`}
-    >
-      ← Back
-    </button>
+  // Three Strikes Failure Modal
+  if (showFailure) {
+    return (
+      <div className={`fixed inset-0 ${theme.bg} flex items-center justify-center p-8 z-50`}>
+        <div className={`${theme.card} rounded-3xl p-12 max-w-2xl w-full shadow-2xl text-center space-y-8`}>
+          <div className="text-8xl">😔</div>
+          
+          <div>
+            <h1 className={`text-4xl font-bold ${theme.text} mb-2`}>
+              Three Strikes!
+            </h1>
+            <p className={`text-xl ${theme.textSecondary}`}>
+              Don't give up - practice makes perfect!
+            </p>
+          </div>
 
-    {/* Header - theme aware text */}
-    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-40 text-center">
-      <h1 className={`text-2xl font-bold ${theme.text}`}>Sentences</h1>
-    </div>
+          <div className={`${theme.card} border-4 border-red-500 rounded-2xl p-8`}>
+            <div className="text-6xl font-bold mb-2 text-red-500">
+              ❌ ❌ ❌
+            </div>
+            <div className={`text-2xl ${theme.textSecondary}`}>
+              {score} / {exercises.length} Correct
+            </div>
+          </div>
 
-    {/* Progress bar - theme aware */}
-    <div className="fixed top-16 left-0 right-0 z-40 px-8">
-      <div className="max-w-2xl mx-auto">
-        <div className="flex justify-between items-center mb-2 text-sm">
-          <span className={`font-semibold ${theme.textSecondary}`}>
-            {currentExercise + 1}/{exercises.length}
-          </span>
-          <span className={`font-semibold ${theme.accent}`}>
-            <Star className="inline w-4 h-4" fill="currentColor" /> {score}/{requiredScore}
-          </span>
-          <span className="font-semibold text-red-400">
-            ❌ {strikes}/3
-          </span>
+          <div className="flex gap-4 justify-center flex-wrap">
+            <button
+              onClick={handleFailureRestart}
+              className={`px-8 py-4 rounded-xl text-lg font-semibold ${theme.button} hover:scale-105 transition-transform shadow-lg`}
+            >
+              Try Again
+            </button>
+            <button
+              onClick={onBack}
+              className={`px-8 py-4 rounded-xl text-lg font-semibold ${theme.card} border-2 border-gray-300 dark:border-gray-600 hover:scale-105 transition-transform shadow-lg`}
+            >
+              Back to Menu
+            </button>
+          </div>
         </div>
-        <div className={`w-full ${theme.progressBg} rounded-full h-2`}>
-          <div
-            className={`${theme.progress} h-2 rounded-full transition-all duration-500`}
-            style={{ width: `${(currentExercise / exercises.length) * 100}%` }}
+      </div>
+    );
+  }
+
+  return (
+    <div className={`fixed inset-0 ${theme.bg} overflow-hidden`} style={{userSelect: 'none', WebkitUserSelect: 'none'}}>
+      <style>{`
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+          20%, 40%, 60%, 80% { transform: translateX(10px); }
+        }
+        .animate-shake {
+          animation: shake 0.5s;
+          background-color: #ef4444 !important;
+        }
+      `}</style>
+
+      <ThemeToggle />
+
+      {/* Back button */}
+      <button
+        onClick={onBack}
+        className={`fixed top-4 left-4 z-50 px-4 py-2 rounded-lg shadow hover:shadow-md transition ${theme.button}`}
+      >
+        ← Back
+      </button>
+
+      {/* Header */}
+      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-40 text-center">
+        <h1 className={`text-2xl font-bold ${theme.text}`}>Sentences</h1>
+      </div>
+
+      {/* Progress bar */}
+      <div className="fixed top-16 left-0 right-0 z-40 px-8">
+        <div className="max-w-2xl mx-auto">
+          <div className="flex justify-between items-center mb-2 text-sm">
+            <span className={`font-semibold ${theme.textSecondary}`}>
+              {currentExercise + 1}/{exercises.length}
+            </span>
+            <span className={`font-semibold ${theme.accent}`}>
+              <Star className="inline w-4 h-4" fill="currentColor" /> {score}/{requiredScore}
+            </span>
+            <span className="font-semibold text-red-400">
+              ❌ {strikes}/3
+            </span>
+          </div>
+          <div className={`w-full ${theme.progressBg} rounded-full h-2`}>
+            <div
+              className={`${theme.progress} h-2 rounded-full transition-all duration-500`}
+              style={{ width: `${(currentExercise / exercises.length) * 100}%` }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Main content area */}
+      <div className="absolute inset-0 pt-32 pb-8 px-8">
+        <div className="h-full max-w-6xl mx-auto">
+          <BuildExercise 
+            exercise={exercise}
+            feedback={feedback}
+            selectedWords={selectedWords}
+            setSelectedWords={setSelectedWords}
+            draggedItemRef={draggedItemRef}
+            dropZoneActive={dropZoneActive}
+            setDropZoneActive={setDropZoneActive}
+            onComplete={handleBuildComplete}
           />
         </div>
       </div>
-    </div>
 
-    {/* Main content area - full screen */}
-    <div className="absolute inset-0 pt-32 pb-8 px-8">
-      <div className="h-full max-w-6xl mx-auto">
-        <BuildExercise 
-          exercise={exercise}
-          feedback={feedback}
-          selectedWords={selectedWords}
-          setSelectedWords={setSelectedWords}
-          draggedItemRef={draggedItemRef}
-          dropZoneActive={dropZoneActive}
-          setDropZoneActive={setDropZoneActive}
-          onComplete={handleBuildComplete}
-        />
-      </div>
-    </div>
-
-    {/* Feedback - fixed bottom */}
-    {feedback && (
-      <div className={`fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 px-6 py-4 rounded-xl shadow-lg ${
-        feedback === "correct" ? "bg-green-500 text-white" : "bg-red-500 text-white"
-      }`}>
-        <div className="flex items-center gap-2">
-          {feedback === "correct" ? <Check className="w-6 h-6" /> : <X className="w-6 h-6" />}
-          <span className="font-bold text-xl">
-            {feedback === "correct" ? "¡Correcto!" : "Try again!"}
-          </span>
+      {/* Feedback */}
+      {feedback && (
+        <div className={`fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 px-6 py-4 rounded-xl shadow-lg ${
+          feedback === "correct" ? "bg-green-500 text-white" : "bg-red-500 text-white"
+        }`}>
+          <div className="flex items-center gap-2">
+            {feedback === "correct" ? <Check className="w-6 h-6" /> : <X className="w-6 h-6" />}
+            <span className="font-bold text-xl">
+              {feedback === "correct" ? "Mvto!" : "Try again!"}
+            </span>
+          </div>
         </div>
-      </div>
-    )}
-  </div>
-);
+      )}
+
+      {/* Completion Modal */}
+      <CompletionModal
+        isOpen={showCompletion}
+        score={score}
+        totalQuestions={exercises.length}
+        onRestart={handleRestart}
+        onBack={onBack}
+        lessonName="Sentence Building"
+      />
+    </div>
+  );
 };
 
 export default SentencesLesson;

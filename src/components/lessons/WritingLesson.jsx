@@ -1,3 +1,22 @@
+// ADD IN LATER WHEN FLESHED OUT
+// import CompletionModal from '../CompletionModal';
+
+// // Add state
+// const [showCompletion, setShowCompletion] = useState(false);
+
+// // When lesson completes
+// setShowCompletion(true);
+
+// // Add modal at end of JSX
+// <CompletionModal
+//   isOpen={showCompletion}
+//   score={score}
+//   totalQuestions={totalQuestions}
+//   onRestart={handleRestart}  // Optional
+//   onBack={onBack}
+//   lessonName="Your Lesson Name"
+// />
+
 import React from 'react';
 
 const WritingLesson = ({ onBack }) => {

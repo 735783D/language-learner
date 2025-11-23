@@ -1,46 +1,10 @@
-import React, { createContext, useContext, useState } from 'react';
-import { Type, Layers, Hash, ArrowLeft, Sun, Moon } from 'lucide-react';
+import { Type, Layers, Hash, ArrowLeft  } from 'lucide-react';
+import ThemeToggle from './ThemeToggle';
+import { useTheme } from '../contexts/ThemeContext';
 
-const ThemeContext = createContext();
-
-const useTheme = () => {
-  return useContext(ThemeContext);
-};
-
-const ThemeToggle = () => {
-  const context = useTheme();
-  const isDark = context.isDark;
-  const toggleTheme = context.toggleTheme;
-  
-  return (
-    <button
-      onClick={toggleTheme}
-      className="fixed top-4 right-4 z-50 p-3 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
-    >
-      {isDark ? (
-        <Sun className="w-6 h-6 text-yellow-400" />
-      ) : (
-        <Moon className="w-6 h-6 text-gray-800" />
-      )}
-    </button>
-  );
-};
 
 const BasicsHub = ({ onSelectSubLesson, onBack, languageName }) => {
-  const [isDark, setIsDark] = useState(false);
-  
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-  };
-  
-  const theme = {
-    bg: isDark ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 to-indigo-100',
-    text: isDark ? 'text-white' : 'text-gray-900',
-    textSecondary: isDark ? 'text-gray-400' : 'text-gray-600',
-    card: isDark ? 'bg-gray-800' : 'bg-white',
-    button: isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900',
-    progressBg: isDark ? 'bg-gray-700' : 'bg-gray-200'
-  };
+  const { theme } = useTheme();
 
   const subLessons = [
     {
@@ -73,7 +37,6 @@ const BasicsHub = ({ onSelectSubLesson, onBack, languageName }) => {
   ];
 
   return (
-    <ThemeContext.Provider value={{ isDark: isDark, toggleTheme: toggleTheme }}>
       <div className={`min-h-screen ${theme.bg} relative overflow-hidden`}>
         <ThemeToggle />
 
@@ -155,7 +118,7 @@ const BasicsHub = ({ onSelectSubLesson, onBack, languageName }) => {
         </div>
       </div>
 
-      {/* Blob animations */}
+
       <style>{`
         .blob {
           position: absolute;
@@ -177,7 +140,7 @@ const BasicsHub = ({ onSelectSubLesson, onBack, languageName }) => {
         .blob-2 {
           width: 400px;
           height: 400px;
-          background: linear-gradient(135deg, #a855f7, #9333ea);
+          background: linear-gradient(135deg, #06b6d4, #0891b2);
           top: 20%;
           right: -150px;
           animation-delay: 7s;
@@ -186,7 +149,7 @@ const BasicsHub = ({ onSelectSubLesson, onBack, languageName }) => {
         .blob-3 {
           width: 350px;
           height: 350px;
-          background: linear-gradient(135deg, #ec4899, #db2777);
+          background: linear-gradient(135deg, #14b8a6, #0d9488);
           bottom: -100px;
           left: 20%;
           animation-delay: 14s;
@@ -204,8 +167,7 @@ const BasicsHub = ({ onSelectSubLesson, onBack, languageName }) => {
           }
         }
       `}</style>
-      </div>
-    </ThemeContext.Provider>
+    </div>
   );
 };
 
