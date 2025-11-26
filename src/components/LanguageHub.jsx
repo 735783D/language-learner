@@ -6,14 +6,14 @@ const LanguageHub = ({ onSelectLanguage }) => {
   const { theme } = useTheme();
 
   const languages = [
-    {
-      id: 'spanish',
-      name: 'Spanish',
-      nativeName: 'Español',
-      flag: '🇪🇸',
-      isImage: false,
-      color: 'from-red-500 to-yellow-500'
-    },
+    // {
+    //   id: 'spanish',
+    //   name: 'Spanish',
+    //   nativeName: 'Español',
+    //   flag: '🇪🇸',
+    //   isImage: false,
+    //   color: 'from-red-500 to-yellow-500'
+    // },
     {
       id: 'creek',
       name: 'Creek',

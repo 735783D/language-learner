@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, MessageCircle, Brain, Target, ArrowLeft } from 'lucide-react';
+import { BookOpen, MessageCircle, Brain, Target, ArrowLeft, Book } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import ThemeToggle from './ThemeToggle';
 
@@ -46,6 +46,13 @@ const Hub = ({ onSelectLesson, languageName = "Spanish", languageData, onBack })
       textColor: "text-orange-900",
       progress: 0,
       locked: false
+    },
+    {
+      id: 6,
+      title: "Stories",
+      description: "Cultural Contexts",
+      icon: Book,
+      color: "bg-indigo-500"
     }
   ];
 
