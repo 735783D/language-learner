@@ -516,7 +516,7 @@ const AudioMatchingExercise = ({ onBack, languageData, subLesson, practice, stag
                   key={idx}
                   onClick={() => handleAnswerClick(option)}
                   disabled={!!feedback}
-                  className={`${buttonStyle} p-8 rounded-3xl text-6xl font-bold hover:scale-105 transition-all shadow-lg disabled:cursor-not-allowed`}
+                  className={`${buttonStyle} p-2 pb-4 rounded-3xl text-6xl font-bold hover:scale-105 transition-all shadow-lg disabled:cursor-not-allowed`}
                 >
                   <span className={feedback && (isSelected || isCorrect) ? 'text-white' : theme.text}>
                     {option}
