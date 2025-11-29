@@ -1,76 +1,47 @@
 import React from 'react';
-import { BookOpen, MessageCircle, Brain, Target, ArrowLeft, Book, Activity, Layers } from 'lucide-react';
+import { Shuffle, Link2, HelpCircle, Layers, ArrowLeft } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import ThemeToggle from './ThemeToggle';
 
-const Hub = ({ onSelectLesson, languageName = "Spanish", languageData, onBack }) => {
+const GrammarHub = ({ onSelectSubLesson, onBack, languageName }) => {
   const { theme } = useTheme();
 
-  const lessons = [
+  const subLessons = [
     {
-      id: 1,
-      title: "Basics",
-      description: "Characters & Sounds",
-      icon: BookOpen,
-      color: "bg-amber-500",
-      textColor: "text-amber-900",
-      progress: 0,
-      locked: false
-    },
-    {
-      id: 2,
-      title: "Words",
-      description: "Essential Vocabulary",
-      icon: MessageCircle,
-      color: "bg-emerald-500",
-      textColor: "text-emerald-900",
-      progress: 0,
-      locked: false
-    },
-    {
-      id: 3,
-      title: "Sentences",
-      description: "Basic Phrases",
-      icon: Brain,
-      color: "bg-teal-500",
-      textColor: "text-teal-900",
-      progress: 0,
-      locked: false
-    },
-    // {
-    //   id: 4,
-    //   title: "Writing",
-    //   description: "Practice Writing",
-    //   icon: Target,
-    //   color: "bg-orange-500",
-    //   textColor: "text-orange-900",
-    //   progress: 0,
-    //   locked: false
-    // },
-    {
-      id: 4,
-      title: "Verbs",
-      description: "Actions & Conjugation",
-      icon: Activity, // Import: import { Activity } from 'lucide-react';
-      color: "bg-blue-500",
-      progress: 0,
-      locked: false
-    },
-    {
-      id: 5,
-      title: "Grammar",
-      description: "Rules & Structure",
-      icon: Layers,
+      id: 'word-order',
+      title: "Word Order",
+      description: "Sentence structure patterns",
+      icon: Shuffle,
       color: "bg-indigo-500",
       progress: 0,
       locked: false
     },
     {
-      id: 6,
-      title: "Stories",
-      description: "Cultural Contexts",
-      icon: Book,
-      color: "bg-indigo-500"
+      id: 'particles',
+      title: "Particles & Connectors",
+      description: "Words that link ideas",
+      icon: Link2,
+      color: "bg-teal-500",
+      progress: 0,
+      locked: false
+    },
+    {
+      id: 'questions',
+      title: "Questions & Negation",
+      description: "Asking and saying no",
+      icon: HelpCircle,
+      color: "bg-rose-500",
+      progress: 0,
+      locked: false
+    },
+    {
+      id: 'complex',
+      title: "Complex Sentences",
+      description: "Advanced sentence building",
+      icon: Layers,
+      color: "bg-violet-500",
+      progress: 0,
+      locked: false
     }
   ];
 
@@ -79,22 +50,19 @@ const Hub = ({ onSelectLesson, languageName = "Spanish", languageData, onBack })
       <ThemeToggle />
 
       {/* Back button */}
-      {onBack && (
-        <button
-          onClick={onBack}
-          className={`fixed top-4 left-4 z-50 px-4 py-2 rounded-lg shadow hover:shadow-md transition ${theme.button} flex items-center gap-2`}
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span>Languages</span>
-        </button>
-      )}
+      <button
+        onClick={onBack}
+        className={`fixed top-4 left-4 z-50 px-4 py-2 rounded-lg shadow hover:shadow-md transition ${theme.button} flex items-center gap-2`}
+      >
+        <ArrowLeft className="w-5 h-5" />
+        <span>Back</span>
+      </button>
 
       {/* Floating blobs background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="blob blob-1"></div>
         <div className="blob blob-2"></div>
         <div className="blob blob-3"></div>
-        <div className="blob blob-4"></div>
       </div>
 
       {/* Content */}
@@ -102,19 +70,19 @@ const Hub = ({ onSelectLesson, languageName = "Spanish", languageData, onBack })
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className={`text-5xl font-bold ${theme.text} mb-3`}>
-            {languageName}
+            Grammar
           </h1>
-          <p className={`text-xl ${theme.textSecondary}`}>Choose a lesson to begin</p>
+          <p className={`text-xl ${theme.textSecondary}`}>Master the rules of Mvskoke</p>
         </div>
 
-        {/* Lesson Cards */}
+        {/* Sub-lesson Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {lessons.map((lesson) => {
+          {subLessons.map((lesson) => {
             const Icon = lesson.icon;
             return (
               <button
                 key={lesson.id}
-                onClick={() => !lesson.locked && onSelectLesson(lesson.id)}
+                onClick={() => !lesson.locked && onSelectSubLesson(lesson.id)}
                 disabled={lesson.locked}
                 className={`relative group ${
                   lesson.locked ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 cursor-pointer'
@@ -122,15 +90,15 @@ const Hub = ({ onSelectLesson, languageName = "Spanish", languageData, onBack })
               >
                 <div className={`${theme.card} rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-shadow`}>
                   {/* Icon */}
-                  <div className={`${lesson.color} w-20 h-20 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                  <div className={`${lesson.color} w-20 h-20 rounded-full flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform`}>
                     <Icon className="w-10 h-10 text-white" />
                   </div>
 
                   {/* Text */}
-                  <h2 className={`text-2xl font-bold ${theme.text} mb-2`}>
+                  <h2 className={`text-2xl font-bold ${theme.text} mb-2 text-center`}>
                     {lesson.title}
                   </h2>
-                  <p className={`${theme.textSecondary} mb-4`}>
+                  <p className={`${theme.textSecondary} text-center mb-4`}>
                     {lesson.description}
                   </p>
 
@@ -157,9 +125,19 @@ const Hub = ({ onSelectLesson, languageName = "Spanish", languageData, onBack })
             );
           })}
         </div>
+
+        {/* Info Box */}
+        <div className={`${theme.card} rounded-2xl p-6 mt-8 border-l-4 border-indigo-500`}>
+          <h3 className={`text-xl font-bold ${theme.text} mb-2`}>🎯 About Grammar Lessons</h3>
+          <p className={`${theme.textSecondary} mb-3`}>
+            Grammar lessons teach you the rules and patterns of Mvskoke. Understanding grammar helps you create your own sentences and speak more naturally.
+          </p>
+          <p className={`${theme.textSecondary} text-sm italic`}>
+            📚 Content is being developed based on authentic Mvskoke language patterns.
+          </p>
+        </div>
       </div>
 
-      {/* Blob animations */}
       <style>{`
         .blob {
           position: absolute;
@@ -172,7 +150,7 @@ const Hub = ({ onSelectLesson, languageName = "Spanish", languageData, onBack })
         .blob-1 {
           width: 300px;
           height: 300px;
-          background: linear-gradient(135deg, #d97706, #f59e0b);
+          background: linear-gradient(135deg, #6366f1, #4f46e5);
           top: -100px;
           left: -100px;
           animation-delay: 0s;
@@ -181,42 +159,30 @@ const Hub = ({ onSelectLesson, languageName = "Spanish", languageData, onBack })
         .blob-2 {
           width: 400px;
           height: 400px;
-          background: linear-gradient(135deg, #059669, #10b981);
+          background: linear-gradient(135deg, #14b8a6, #0d9488);
           top: 20%;
           right: -150px;
-          animation-delay: 5s;
+          animation-delay: 7s;
         }
 
         .blob-3 {
           width: 350px;
           height: 350px;
-          background: linear-gradient(135deg, #0d9488, #14b8a6);
+          background: linear-gradient(135deg, #8b5cf6, #7c3aed);
           bottom: -100px;
           left: 20%;
-          animation-delay: 10s;
-        }
-
-        .blob-4 {
-          width: 250px;
-          height: 250px;
-          background: linear-gradient(135deg, #ea580c, #f97316);
-          bottom: 30%;
-          right: 10%;
-          animation-delay: 15s;
+          animation-delay: 14s;
         }
 
         @keyframes float {
           0%, 100% {
             transform: translate(0, 0) scale(1);
           }
-          25% {
+          33% {
             transform: translate(30px, -30px) scale(1.1);
           }
-          50% {
+          66% {
             transform: translate(-20px, 20px) scale(0.9);
-          }
-          75% {
-            transform: translate(20px, 30px) scale(1.05);
           }
         }
       `}</style>
@@ -224,4 +190,4 @@ const Hub = ({ onSelectLesson, languageName = "Spanish", languageData, onBack })
   );
 };
 
-export default Hub;
+export default GrammarHub;

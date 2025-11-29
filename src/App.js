@@ -16,6 +16,8 @@ import { creekStages } from './data/creekData';
 import { mvskokeStories } from './data/storyData';
 import TwoLetterHub from './components/TwoLetterHub';
 import ThreeLetterHub from './components/ThreeLetterHub';
+import VerbsHub from './components/VerbsHub';
+import GrammarHub from './components/GrammarHub';
 
 const App = () => {
   const [selectedLanguage, setSelectedLanguage] = useState(null);
@@ -239,16 +241,40 @@ const App = () => {
   // WRITING LESSON (Lesson 4) ROUTING
   // ========================================
   
+  // if (selectedLesson === 4) {
+  //   return (
+  //     <ThemeProvider>
+  //       <WritingLesson 
+  //         onBack={handleBackToHub} 
+  //       />
+  //     </ThemeProvider>
+  //   );
+  // }
+  // Verbs lesson (4)
   if (selectedLesson === 4) {
     return (
       <ThemeProvider>
-        <WritingLesson 
-          onBack={handleBackToHub} 
+        <VerbsHub
+          onSelectSubLesson={setSelectedSubLesson}
+          onBack={handleBackToHub}
+          languageName={selectedLanguage === 'spanish' ? 'Spanish' : 'Creek'}
         />
       </ThemeProvider>
     );
   }
 
+  // Grammar lesson (5)
+  if (selectedLesson === 5) {
+    return (
+      <ThemeProvider>
+        <GrammarHub
+          onSelectSubLesson={setSelectedSubLesson}
+          onBack={handleBackToHub}
+          languageName={selectedLanguage === 'spanish' ? 'Spanish' : 'Creek'}
+        />
+      </ThemeProvider>
+    );
+  }
   // ========================================
   // STORIES LESSON (Lesson 6) ROUTING
   // ========================================
