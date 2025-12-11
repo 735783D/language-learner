@@ -1,11 +1,10 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Star, X, Check } from 'lucide-react';
-import BuildExercise from '../exercises_types/BuildExercise';
-import CompletionModal from '../CompletionModal';
-import { useTheme } from '../../contexts/ThemeContext';
-import ThemeToggle from '../ThemeToggle';
+import CompletionModal from '../../CompletionModal';
+import { useTheme } from '../../../contexts/ThemeContext';
+import ThemeToggle from '../../ThemeToggle';
 
-const SentencesLesson = ({ onBack, languageData }) => {
+const FutureTenseLesson = ({ onBack, languageData }) => {
   const { theme } = useTheme();
   const [currentExercise, setCurrentExercise] = useState(0);
   const [score, setScore] = useState(0);
@@ -13,22 +12,74 @@ const SentencesLesson = ({ onBack, languageData }) => {
   const [feedback, setFeedback] = useState(null);
   const [showCompletion, setShowCompletion] = useState(false);
   const [showFailure, setShowFailure] = useState(false);
-  const draggedItemRef = useRef(null);
-  const [dropZoneActive, setDropZoneActive] = useState(false);
-  const [selectedWords, setSelectedWords] = useState([]);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [questionType, setQuestionType] = useState('first'); // 'first' or 'second'
+  
+  const stageData = languageData[4];
 
-  const stageData = languageData[3];
-
-  // Generate a random set of sentence exercises
+  // Generate randomized exercises
   const exercises = useMemo(() => {
-    if (!stageData?.exercises) return [];
-    return [...stageData.exercises].sort(() => Math.random() - 0.5).slice(0, 10);
+    if (!stageData?.subLessons?.future?.exercises) return [];
+    
+    const allExercises = stageData.subLessons.future.exercises;
+    
+    // Create mixed exercises for both first person and second person
+    const exerciseList = [];
+    
+    allExercises.forEach(verb => {
+      // First person exercise
+      exerciseList.push({
+        infinitive: verb.infinitive,
+        translation: verb.translation,
+        root: verb.root,
+        correctAnswer: verb.firstPerson,
+        type: 'first',
+        prompt: "I am going to..."
+      });
+      
+      // Second person exercise
+      exerciseList.push({
+        infinitive: verb.infinitive,
+        translation: verb.translation,
+        root: verb.root,
+        correctAnswer: verb.secondPerson,
+        type: 'second',
+        prompt: "You are going to..."
+      });
+    });
+    
+    // Shuffle and take 15 exercises
+    return exerciseList
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 15)
+      .map(verb => {
+        // Get 3 wrong answers of the same type
+        const wrongAnswers = exerciseList
+          .filter(v => v.type === verb.type && v.correctAnswer !== verb.correctAnswer)
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 3)
+          .map(v => v.correctAnswer);
+        
+        // Shuffle all options
+        const options = [verb.correctAnswer, ...wrongAnswers]
+          .sort(() => Math.random() - 0.5);
+        
+        return {
+          ...verb,
+          options
+        };
+      });
   }, [stageData]);
 
   const exercise = exercises[currentExercise];
-  const requiredScore = 6; // Need 6 out of 10 to pass
+  const requiredScore = 12;
 
-  const handleBuildComplete = (isCorrect) => {
+  const handleAnswerClick = (answer) => {
+    if (feedback) return;
+    
+    setSelectedAnswer(answer);
+    const isCorrect = answer === exercise.correctAnswer;
+    
     if (isCorrect) {
       setFeedback("correct");
       setScore(score + 1);
@@ -49,9 +100,8 @@ const SentencesLesson = ({ onBack, languageData }) => {
       if (currentExercise < exercises.length - 1) {
         setCurrentExercise(currentExercise + 1);
         setFeedback(null);
-        setSelectedWords([]);
+        setSelectedAnswer(null);
       } else {
-        // Lesson complete - show completion modal
         setShowCompletion(true);
       }
     }, 1500);
@@ -62,9 +112,9 @@ const SentencesLesson = ({ onBack, languageData }) => {
     setScore(0);
     setStrikes(0);
     setFeedback(null);
-    setSelectedWords([]);
     setShowCompletion(false);
     setShowFailure(false);
+    setSelectedAnswer(null);
   };
 
   const handleFailureRestart = () => {
@@ -72,8 +122,8 @@ const SentencesLesson = ({ onBack, languageData }) => {
     setScore(0);
     setStrikes(0);
     setFeedback(null);
-    setSelectedWords([]);
     setShowFailure(false);
+    setSelectedAnswer(null);
   };
 
   // Three Strikes Failure Modal
@@ -120,20 +170,16 @@ const SentencesLesson = ({ onBack, languageData }) => {
     );
   }
 
+  if (!exercises || exercises.length === 0) {
+    return (
+      <div className={`fixed inset-0 ${theme.bg} flex items-center justify-center`}>
+        <div className={`text-2xl ${theme.text}`}>Loading exercises...</div>
+      </div>
+    );
+  }
+
   return (
     <div className={`fixed inset-0 ${theme.bg} overflow-hidden`} style={{userSelect: 'none', WebkitUserSelect: 'none'}}>
-      <style>{`
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
-          20%, 40%, 60%, 80% { transform: translateX(10px); }
-        }
-        .animate-shake {
-          animation: shake 0.5s;
-          background-color: #ef4444 !important;
-        }
-      `}</style>
-
       <ThemeToggle />
 
       {/* Back button */}
@@ -146,11 +192,12 @@ const SentencesLesson = ({ onBack, languageData }) => {
 
       {/* Header */}
       <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-40 text-center">
-        <h1 className={`text-2xl font-bold ${theme.text}`}>Sentences</h1>
+        <h1 className={`text-2xl font-bold ${theme.text}`}>Future Tense</h1>
+        <p className={`text-sm ${theme.textSecondary}`}>Using "vhan" - going to...</p>
       </div>
 
       {/* Progress bar */}
-      <div className="fixed top-16 left-0 right-0 z-40 px-8">
+      <div className="fixed top-20 left-0 right-0 z-40 px-8">
         <div className="max-w-2xl mx-auto">
           <div className="flex justify-between items-center mb-2 text-sm">
             <span className={`font-semibold ${theme.textSecondary}`}>
@@ -173,18 +220,61 @@ const SentencesLesson = ({ onBack, languageData }) => {
       </div>
 
       {/* Main content area */}
-      <div className="absolute inset-0 pt-32 pb-8 px-8">
-        <div className="h-full max-w-6xl mx-auto">
-          <BuildExercise 
-            exercise={exercise}
-            feedback={feedback}
-            selectedWords={selectedWords}
-            setSelectedWords={setSelectedWords}
-            draggedItemRef={draggedItemRef}
-            dropZoneActive={dropZoneActive}
-            setDropZoneActive={setDropZoneActive}
-            onComplete={handleBuildComplete}
-          />
+      <div className="absolute inset-0 pt-32 pb-8 flex flex-col items-center justify-center">
+        <div className="space-y-8 max-w-2xl w-full px-8">
+          {/* Question */}
+          <div className="text-center space-y-4">
+            <p className={`text-xl ${theme.textSecondary}`}>
+              How do you say:
+            </p>
+            <div className={`${theme.card} p-8 rounded-3xl shadow-lg space-y-3`}>
+              <div className={`text-3xl font-bold ${theme.accent}`}>
+                {exercise.prompt}
+              </div>
+              <div className={`text-4xl font-bold ${theme.text}`}>
+                {exercise.infinitive}
+              </div>
+              <div className={`text-lg ${theme.textSecondary} italic`}>
+                ({exercise.translation})
+              </div>
+            </div>
+            <div className={`text-sm ${theme.textSecondary} bg-blue-100 dark:bg-blue-900 p-3 rounded-lg`}>
+              💡 Tip: Drop "etv" from the infinitive, add "vhan" + person marker
+            </div>
+          </div>
+
+          {/* Answer options */}
+          <div className="grid grid-cols-2 gap-4">
+            {exercise.options.map((option, idx) => {
+              const isSelected = selectedAnswer === option;
+              const isCorrect = option === exercise.correctAnswer;
+              
+              let buttonStyle = `${theme.card} border-4 border-transparent`;
+              
+              if (feedback && isSelected) {
+                if (feedback === 'correct') {
+                  buttonStyle = 'bg-green-500 border-green-600';
+                } else {
+                  buttonStyle = 'bg-red-500 border-red-600';
+                }
+              } else if (feedback && isCorrect) {
+                buttonStyle = 'bg-green-500 border-green-600';
+              }
+
+              return (
+                <button
+                  key={idx}
+                  onClick={() => handleAnswerClick(option)}
+                  disabled={!!feedback}
+                  className={`${buttonStyle} p-6 rounded-2xl text-2xl font-semibold hover:scale-105 transition-all shadow-lg disabled:cursor-not-allowed`}
+                >
+                  <span className={feedback && (isSelected || isCorrect) ? 'text-white' : theme.text}>
+                    {option}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -209,10 +299,10 @@ const SentencesLesson = ({ onBack, languageData }) => {
         totalQuestions={exercises.length}
         onRestart={handleRestart}
         onBack={onBack}
-        lessonName="Sentence Building"
+        lessonName="Future Tense"
       />
     </div>
   );
 };
 
-export default SentencesLesson;
+export default FutureTenseLesson;

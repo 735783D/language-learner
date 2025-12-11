@@ -1,45 +1,45 @@
 import React from 'react';
-import { Shuffle, Link2, HelpCircle, Layers, ArrowLeft } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
-import ThemeToggle from './ThemeToggle';
+import { Activity, User, Clock, Calendar, ArrowLeft } from 'lucide-react';
+import ThemeToggle from '../ThemeToggle';
+import { useTheme } from '../../contexts/ThemeContext';
 
-const GrammarHub = ({ onSelectSubLesson, onBack, languageName }) => {
+const VerbsHub = ({ onSelectSubLesson, onBack, languageName }) => {
   const { theme } = useTheme();
 
   const subLessons = [
     {
-      id: 'word-order',
-      title: "Word Order",
-      description: "Sentence structure patterns",
-      icon: Shuffle,
-      color: "bg-indigo-500",
+      id: 'infinitives',
+      title: "Infinitives & Pronouns",
+      description: "Learn verb forms and pronouns",
+      icon: Activity,
+      color: "bg-blue-500",
       progress: 0,
       locked: false
     },
     {
-      id: 'particles',
-      title: "Particles & Connectors",
-      description: "Words that link ideas",
-      icon: Link2,
-      color: "bg-teal-500",
+      id: 'present',
+      title: "Present Tense",
+      description: "Actions happening now",
+      icon: User,
+      color: "bg-green-500",
       progress: 0,
       locked: false
     },
     {
-      id: 'questions',
-      title: "Questions & Negation",
-      description: "Asking and saying no",
-      icon: HelpCircle,
-      color: "bg-rose-500",
+      id: 'past',
+      title: "Past Tense",
+      description: "Actions that already happened",
+      icon: Clock,
+      color: "bg-orange-500",
       progress: 0,
       locked: false
     },
     {
-      id: 'complex',
-      title: "Complex Sentences",
-      description: "Advanced sentence building",
-      icon: Layers,
-      color: "bg-violet-500",
+      id: 'future',
+      title: "Future Tense",
+      description: "Actions that will happen",
+      icon: Calendar,
+      color: "bg-purple-500",
       progress: 0,
       locked: false
     }
@@ -70,9 +70,9 @@ const GrammarHub = ({ onSelectSubLesson, onBack, languageName }) => {
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className={`text-5xl font-bold ${theme.text} mb-3`}>
-            Grammar
+            Verbs
           </h1>
-          <p className={`text-xl ${theme.textSecondary}`}>Master the rules of Mvskoke</p>
+          <p className={`text-xl ${theme.textSecondary}`}>Learn action words and conjugation</p>
         </div>
 
         {/* Sub-lesson Cards */}
@@ -126,14 +126,11 @@ const GrammarHub = ({ onSelectSubLesson, onBack, languageName }) => {
           })}
         </div>
 
-        {/* Info Box */}
-        <div className={`${theme.card} rounded-2xl p-6 mt-8 border-l-4 border-indigo-500`}>
-          <h3 className={`text-xl font-bold ${theme.text} mb-2`}>🎯 About Grammar Lessons</h3>
-          <p className={`${theme.textSecondary} mb-3`}>
-            Grammar lessons teach you the rules and patterns of Mvskoke. Understanding grammar helps you create your own sentences and speak more naturally.
-          </p>
-          <p className={`${theme.textSecondary} text-sm italic`}>
-            📚 Content is being developed based on authentic Mvskoke language patterns.
+        {/* Coming Soon Notice */}
+        <div className={`${theme.card} rounded-2xl p-6 mt-8 border-l-4 border-blue-500`}>
+          <h3 className={`text-xl font-bold ${theme.text} mb-2`}>📚 Content In Progress</h3>
+          <p className={`${theme.textSecondary}`}>
+            Verb conjugation lessons are being developed. Check back soon!
           </p>
         </div>
       </div>
@@ -150,7 +147,7 @@ const GrammarHub = ({ onSelectSubLesson, onBack, languageName }) => {
         .blob-1 {
           width: 300px;
           height: 300px;
-          background: linear-gradient(135deg, #6366f1, #4f46e5);
+          background: linear-gradient(135deg, #3b82f6, #2563eb);
           top: -100px;
           left: -100px;
           animation-delay: 0s;
@@ -159,7 +156,7 @@ const GrammarHub = ({ onSelectSubLesson, onBack, languageName }) => {
         .blob-2 {
           width: 400px;
           height: 400px;
-          background: linear-gradient(135deg, #14b8a6, #0d9488);
+          background: linear-gradient(135deg, #06b6d4, #0891b2);
           top: 20%;
           right: -150px;
           animation-delay: 7s;
@@ -168,7 +165,7 @@ const GrammarHub = ({ onSelectSubLesson, onBack, languageName }) => {
         .blob-3 {
           width: 350px;
           height: 350px;
-          background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+          background: linear-gradient(135deg, #14b8a6, #0d9488);
           bottom: -100px;
           left: 20%;
           animation-delay: 14s;
@@ -190,4 +187,4 @@ const GrammarHub = ({ onSelectSubLesson, onBack, languageName }) => {
   );
 };
 
-export default GrammarHub;
+export default VerbsHub;

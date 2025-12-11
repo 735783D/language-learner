@@ -1,59 +1,45 @@
 import React from 'react';
-import { Book, Users, Hash, Music, Home, ArrowLeft } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
-import ThemeToggle from './ThemeToggle';
+import { Shuffle, Link2, HelpCircle, Layers, ArrowLeft } from 'lucide-react';
+import ThemeToggle from '../ThemeToggle';
+import { useTheme } from '../../contexts/ThemeContext';
 
-const StoriesHub = ({ onSelectStory, onBack, languageName }) => {
+const GrammarHub = ({ onSelectSubLesson, onBack, languageName }) => {
   const { theme } = useTheme();
 
-  const stories = [
+  const subLessons = [
     {
-      id: 'greetings',
-      title: "Meeting an Elder",
-      description: "Learn traditional greetings",
-      icon: Users,
-      color: "bg-blue-500",
-      culturalNote: "Greeting elders with respect",
+      id: 'word-order',
+      title: "Word Order",
+      description: "Sentence structure patterns",
+      icon: Shuffle,
+      color: "bg-indigo-500",
       progress: 0,
       locked: false
     },
     {
-      id: 'family',
-      title: "Talking About Family",
-      description: "Learn family member words",
-      icon: Home,
-      color: "bg-green-500",
-      culturalNote: "Family is central to Mvskoke identity",
+      id: 'particles',
+      title: "Particles & Connectors",
+      description: "Words that link ideas",
+      icon: Link2,
+      color: "bg-teal-500",
       progress: 0,
       locked: false
     },
     {
-      id: 'numbers',
-      title: "Counting in Mvskoke",
-      description: "Learn numbers 1-5",
-      icon: Hash,
-      color: "bg-purple-500",
-      culturalNote: "Traditional counting system",
+      id: 'questions',
+      title: "Questions & Negation",
+      description: "Asking and saying no",
+      icon: HelpCircle,
+      color: "bg-rose-500",
       progress: 0,
       locked: false
     },
     {
-      id: 'stomp-dance',
-      title: "At the Stomp Dance",
-      description: "Learn ceremonial vocabulary",
-      icon: Music,
-      color: "bg-pink-500",
-      culturalNote: "Sacred social gathering",
-      progress: 0,
-      locked: false
-    },
-    {
-      id: 'daily-life',
-      title: "Daily Activities",
-      description: "Common everyday phrases",
-      icon: Book,
-      color: "bg-amber-500",
-      culturalNote: "Practical language use",
+      id: 'complex',
+      title: "Complex Sentences",
+      description: "Advanced sentence building",
+      icon: Layers,
+      color: "bg-violet-500",
       progress: 0,
       locked: false
     }
@@ -84,59 +70,50 @@ const StoriesHub = ({ onSelectStory, onBack, languageName }) => {
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className={`text-5xl font-bold ${theme.text} mb-3`}>
-            Stories
+            Grammar
           </h1>
-          <p className={`text-xl ${theme.textSecondary}`}>
-            Learn Mvskoke through cultural stories
-          </p>
+          <p className={`text-xl ${theme.textSecondary}`}>Master the rules of Mvskoke</p>
         </div>
 
-        {/* Story Cards */}
+        {/* Sub-lesson Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {stories.map((story) => {
-            const Icon = story.icon;
+          {subLessons.map((lesson) => {
+            const Icon = lesson.icon;
             return (
               <button
-                key={story.id}
-                onClick={() => !story.locked && onSelectStory(story.id)}
-                disabled={story.locked}
+                key={lesson.id}
+                onClick={() => !lesson.locked && onSelectSubLesson(lesson.id)}
+                disabled={lesson.locked}
                 className={`relative group ${
-                  story.locked ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 cursor-pointer'
+                  lesson.locked ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 cursor-pointer'
                 } transition-all duration-300`}
               >
                 <div className={`${theme.card} rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-shadow`}>
                   {/* Icon */}
-                  <div className={`${story.color} w-20 h-20 rounded-full flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform`}>
+                  <div className={`${lesson.color} w-20 h-20 rounded-full flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform`}>
                     <Icon className="w-10 h-10 text-white" />
                   </div>
 
                   {/* Text */}
                   <h2 className={`text-2xl font-bold ${theme.text} mb-2 text-center`}>
-                    {story.title}
+                    {lesson.title}
                   </h2>
-                  <p className={`${theme.textSecondary} text-center mb-3`}>
-                    {story.description}
+                  <p className={`${theme.textSecondary} text-center mb-4`}>
+                    {lesson.description}
                   </p>
-                  
-                  {/* Cultural Note */}
-                  <div className={`${theme.card} rounded-xl p-3 mb-4 border-l-4 ${story.color.replace('bg-', 'border-')}`}>
-                    <p className={`text-sm ${theme.textSecondary} italic`}>
-                      🪶 {story.culturalNote}
-                    </p>
-                  </div>
 
                   {/* Progress bar */}
-                  {!story.locked && (
+                  {!lesson.locked && (
                     <div className={`w-full ${theme.progressBg} rounded-full h-2`}>
                       <div
-                        className={`${story.color} h-2 rounded-full transition-all duration-500`}
-                        style={{ width: `${story.progress}%` }}
+                        className={`${lesson.color} h-2 rounded-full transition-all duration-500`}
+                        style={{ width: `${lesson.progress}%` }}
                       />
                     </div>
                   )}
 
                   {/* Lock indicator */}
-                  {story.locked && (
+                  {lesson.locked && (
                     <div className={`absolute top-4 right-4 ${theme.card} rounded-full p-2`}>
                       <svg className={`w-5 h-5 ${theme.textSecondary}`} fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
@@ -149,12 +126,14 @@ const StoriesHub = ({ onSelectStory, onBack, languageName }) => {
           })}
         </div>
 
-        {/* Info box */}
-        <div className={`${theme.card} rounded-2xl p-6 mt-8 border-l-4 border-amber-500`}>
-          <h3 className={`text-xl font-bold ${theme.text} mb-2`}>About Story Mode</h3>
-          <p className={`${theme.textSecondary}`}>
-            Each story combines different exercise types to help you apply what you've learned in real cultural contexts. 
-            You'll practice characters, sounds, vocabulary, and sentence building all in one lesson!
+        {/* Info Box */}
+        <div className={`${theme.card} rounded-2xl p-6 mt-8 border-l-4 border-indigo-500`}>
+          <h3 className={`text-xl font-bold ${theme.text} mb-2`}>🎯 About Grammar Lessons</h3>
+          <p className={`${theme.textSecondary} mb-3`}>
+            Grammar lessons teach you the rules and patterns of Mvskoke. Understanding grammar helps you create your own sentences and speak more naturally.
+          </p>
+          <p className={`${theme.textSecondary} text-sm italic`}>
+            📚 Content is being developed based on authentic Mvskoke language patterns.
           </p>
         </div>
       </div>
@@ -171,7 +150,7 @@ const StoriesHub = ({ onSelectStory, onBack, languageName }) => {
         .blob-1 {
           width: 300px;
           height: 300px;
-          background: linear-gradient(135deg, #3b82f6, #2563eb);
+          background: linear-gradient(135deg, #6366f1, #4f46e5);
           top: -100px;
           left: -100px;
           animation-delay: 0s;
@@ -180,7 +159,7 @@ const StoriesHub = ({ onSelectStory, onBack, languageName }) => {
         .blob-2 {
           width: 400px;
           height: 400px;
-          background: linear-gradient(135deg, #06b6d4, #0891b2);
+          background: linear-gradient(135deg, #14b8a6, #0d9488);
           top: 20%;
           right: -150px;
           animation-delay: 7s;
@@ -189,7 +168,7 @@ const StoriesHub = ({ onSelectStory, onBack, languageName }) => {
         .blob-3 {
           width: 350px;
           height: 350px;
-          background: linear-gradient(135deg, #14b8a6, #0d9488);
+          background: linear-gradient(135deg, #8b5cf6, #7c3aed);
           bottom: -100px;
           left: 20%;
           animation-delay: 14s;
@@ -211,4 +190,4 @@ const StoriesHub = ({ onSelectStory, onBack, languageName }) => {
   );
 };
 
-export default StoriesHub;
+export default GrammarHub;

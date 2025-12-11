@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
-import { BookOpen, Book, FileText, ArrowLeft, ChevronDown, ChevronRight, Volume2 } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
-import ThemeToggle from './ThemeToggle';
+import { BookOpen, Book, FileText, Layers, Grid, Package, ArrowLeft, ChevronDown, ChevronRight, Volume2 } from 'lucide-react';
+import ThemeToggle from '../ThemeToggle';
+import { useTheme } from '../../contexts/ThemeContext';
 
-const SingleLettersHub = ({ onSelectPractice, onBack, languageName }) => {
-  const { theme } = useTheme(); // ADD THIS LINE
+const TwoLetterHub = ({ onSelectPractice, onBack, languageName }) => {
+  const { theme } = useTheme();
   const [expandedCard, setExpandedCard] = useState(null);
   
   const practiceSets = [
     {
       id: 'full',
-      title: "Full Alphabet",
-      description: "All letters A-Y",
+      title: "Full Set",
+      description: "All two-letter sounds",
       icon: BookOpen,
       color: "bg-blue-500",
       exercises: [
@@ -20,9 +20,9 @@ const SingleLettersHub = ({ onSelectPractice, onBack, languageName }) => {
       ]
     },
     {
-      id: 'firstHalf',
-      title: "A through M",
-      description: "First half of alphabet",
+      id: 'cfh',
+      title: "C, F, H + Vowels",
+      description: "18 sounds",
       icon: Book,
       color: "bg-cyan-500",
       exercises: [
@@ -31,13 +31,79 @@ const SingleLettersHub = ({ onSelectPractice, onBack, languageName }) => {
       ]
     },
     {
-      id: 'secondHalf',
-      title: "N through Y",
-      description: "Second half of alphabet",
+      id: 'klm',
+      title: "K, L, M + Vowels",
+      description: "18 sounds",
       icon: FileText,
       color: "bg-teal-500",
       exercises: [
         { type: 'drag', label: 'Drag to Learn', icon: FileText },
+        { type: 'audio', label: 'Audio Matching', icon: Volume2 }
+      ]
+    },
+    {
+      id: 'npr',
+      title: "N, P, R + Vowels",
+      description: "18 sounds",
+      icon: Layers,
+      color: "bg-purple-500",
+      exercises: [
+        { type: 'drag', label: 'Drag to Learn', icon: Layers },
+        { type: 'audio', label: 'Audio Matching', icon: Volume2 }
+      ]
+    },
+    {
+      id: 'stw',
+      title: "S, T, W + Vowels",
+      description: "18 sounds",
+      icon: Grid,
+      color: "bg-pink-500",
+      exercises: [
+        { type: 'drag', label: 'Drag to Learn', icon: Grid },
+        { type: 'audio', label: 'Audio Matching', icon: Volume2 }
+      ]
+    },
+    {
+      id: 'yae',
+      title: "Y + Vowels, A + Consonants",
+      description: "18 sounds",
+      icon: Package,
+      color: "bg-indigo-500",
+      exercises: [
+        { type: 'drag', label: 'Drag to Learn', icon: Package },
+        { type: 'audio', label: 'Audio Matching', icon: Volume2 }
+      ]
+    },
+    {
+      id: 'eio1',
+      title: "E, I + Consonants (Part 1)",
+      description: "18 sounds",
+      icon: Book,
+      color: "bg-violet-500",
+      exercises: [
+        { type: 'drag', label: 'Drag to Learn', icon: Book },
+        { type: 'audio', label: 'Audio Matching', icon: Volume2 }
+      ]
+    },
+    {
+      id: 'eio2',
+      title: "O, U + Consonants",
+      description: "18 sounds",
+      icon: FileText,
+      color: "bg-fuchsia-500",
+      exercises: [
+        { type: 'drag', label: 'Drag to Learn', icon: FileText },
+        { type: 'audio', label: 'Audio Matching', icon: Volume2 }
+      ]
+    },
+    {
+      id: 'v',
+      title: "V + Consonants",
+      description: "8 sounds",
+      icon: Layers,
+      color: "bg-rose-500",
+      exercises: [
+        { type: 'drag', label: 'Drag to Learn', icon: Layers },
         { type: 'audio', label: 'Audio Matching', icon: Volume2 }
       ]
     }
@@ -73,9 +139,9 @@ const SingleLettersHub = ({ onSelectPractice, onBack, languageName }) => {
       <div className="relative z-10 max-w-4xl mx-auto px-8 py-12">
         <div className="text-center mb-16">
           <h1 className={`text-5xl font-bold ${theme.text} mb-3`}>
-            Single Letters
+            Two-Letter Sounds
           </h1>
-          <p className={`text-xl ${theme.textSecondary}`}>Choose a practice session</p>
+          <p className={`text-xl ${theme.textSecondary}`}>Choose a practice session (18 sounds each)</p>
         </div>
 
         <div className="space-y-4">
@@ -85,7 +151,6 @@ const SingleLettersHub = ({ onSelectPractice, onBack, languageName }) => {
             
             return (
               <div key={set.id} className={`${theme.card} rounded-3xl shadow-lg transition-all duration-300`}>
-                {/* Main Card - Clickable to expand/collapse */}
                 <button
                   onClick={() => toggleCard(set.id)}
                   className="w-full p-6 flex items-center justify-between hover:bg-opacity-90 transition-all rounded-3xl"
@@ -112,7 +177,6 @@ const SingleLettersHub = ({ onSelectPractice, onBack, languageName }) => {
                   </div>
                 </button>
 
-                {/* Expanded Exercise Options */}
                 {isExpanded && (
                   <div className="px-6 pb-6 space-y-3 border-t border-gray-200 dark:border-gray-700 pt-4">
                     {set.exercises.map((exercise, idx) => {
@@ -192,4 +256,4 @@ const SingleLettersHub = ({ onSelectPractice, onBack, languageName }) => {
   );
 };
 
-export default SingleLettersHub;
+export default TwoLetterHub;

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { Star, X, Check } from 'lucide-react';
-import MatchExercise from '../MatchExercise';
+import MatchExercise from '../exercises_types/MatchExercise';
 import CompletionModal from '../CompletionModal';
 import { useTheme } from '../../contexts/ThemeContext';
 import ThemeToggle from '../ThemeToggle';

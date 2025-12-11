@@ -2,10 +2,10 @@ import React, { useState, useRef } from 'react';
 import { Star, ArrowLeft } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import ThemeToggle from '../../components/ThemeToggle';
-import CharacterExercise from '../CharacterExercise';
+import CharacterExercise from '../exercises_types/CharacterExercise';
 // import AudioMatchingExercise from '../AudioMatchingExercise';
-import MatchExercise from '../MatchExercise';
-import BuildExercise from '../BuildExercise';
+import MatchExercise from '../exercises_types/MatchExercise';
+import BuildExercise from '../exercises_types/BuildExercise';
 import CompletionModal from '../CompletionModal';
 
 const StoryLesson = ({ onBack, story, languageData }) => {

@@ -1,6 +1,6 @@
 import React from 'react';
-import { useTheme } from '../contexts/ThemeContext';
-import ThemeToggle from './ThemeToggle';
+import ThemeToggle from '../ThemeToggle';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const LanguageHub = ({ onSelectLanguage }) => {
   const { theme } = useTheme();

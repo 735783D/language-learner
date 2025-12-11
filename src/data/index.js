@@ -8,10 +8,21 @@ import { singleLetterExercises as creekSingleLetters } from './creek/alphabet/si
 import { twoLetterSounds as creekTwoLetters } from './creek/alphabet/twoLetters';
 import { threeLetterSounds as creekThreeLetters } from './creek/alphabet/threeLetters';
 
+// Import vocabulary
+import { 
+  infinitives, 
+  allVerbs, 
+  everydayVerbs,
+  commonVerbs,
+  verbsByCategory,
+  presentTense,
+  commands,
+  futurePattern
+} from './creek/vocabulary/verbs';
+
 // Add other Creek exports when ready:
 // import { pronouns } from './creek/grammar/pronouns';
 // import { allNouns } from './creek/vocabulary/nouns';
-// import { allVerbs } from './creek/vocabulary/verbs';
 // import { adjectives } from './creek/vocabulary/adjectives';
 
 // Future languages can be added here:
@@ -29,6 +40,15 @@ export const availableLanguages = {
       single: creekSingleLetters,
       twoLetter: creekTwoLetters,
       threeLetter: creekThreeLetters
+    },
+    verbs: {
+      infinitives,
+      everyday: everydayVerbs,
+      common: commonVerbs,
+      byCategory: verbsByCategory,
+      presentTense,
+      commands,
+      futurePattern
     }
   }
   // Future languages:
@@ -51,6 +71,18 @@ export {
   creekSingleLetters as singleLetterExercises,
   creekTwoLetters as twoLetterSounds,
   creekThreeLetters as threeLetterSounds
+};
+
+// Export Creek verbs
+export {
+  infinitives,
+  allVerbs,
+  everydayVerbs,
+  commonVerbs,
+  verbsByCategory,
+  presentTense,
+  commands,
+  futurePattern
 };
 
 // Default export

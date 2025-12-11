@@ -1,45 +1,59 @@
 import React from 'react';
-import { Activity, User, Clock, Calendar, ArrowLeft } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
-import ThemeToggle from './ThemeToggle';
+import { Book, Users, Hash, Music, Home, ArrowLeft } from 'lucide-react';
+import ThemeToggle from '../ThemeToggle';
+import { useTheme } from '../../contexts/ThemeContext';
 
-const VerbsHub = ({ onSelectSubLesson, onBack, languageName }) => {
+const StoriesHub = ({ onSelectStory, onBack, languageName }) => {
   const { theme } = useTheme();
 
-  const subLessons = [
+  const stories = [
     {
-      id: 'infinitives',
-      title: "Infinitives & Pronouns",
-      description: "Learn verb forms and pronouns",
-      icon: Activity,
+      id: 'greetings',
+      title: "Meeting an Elder",
+      description: "Learn traditional greetings",
+      icon: Users,
       color: "bg-blue-500",
+      culturalNote: "Greeting elders with respect",
       progress: 0,
       locked: false
     },
     {
-      id: 'present',
-      title: "Present Tense",
-      description: "Actions happening now",
-      icon: User,
+      id: 'family',
+      title: "Talking About Family",
+      description: "Learn family member words",
+      icon: Home,
       color: "bg-green-500",
+      culturalNote: "Family is central to Mvskoke identity",
       progress: 0,
       locked: false
     },
     {
-      id: 'past',
-      title: "Past Tense",
-      description: "Actions that already happened",
-      icon: Clock,
-      color: "bg-orange-500",
-      progress: 0,
-      locked: false
-    },
-    {
-      id: 'future',
-      title: "Future Tense",
-      description: "Actions that will happen",
-      icon: Calendar,
+      id: 'numbers',
+      title: "Counting in Mvskoke",
+      description: "Learn numbers 1-5",
+      icon: Hash,
       color: "bg-purple-500",
+      culturalNote: "Traditional counting system",
+      progress: 0,
+      locked: false
+    },
+    {
+      id: 'stomp-dance',
+      title: "At the Stomp Dance",
+      description: "Learn ceremonial vocabulary",
+      icon: Music,
+      color: "bg-pink-500",
+      culturalNote: "Sacred social gathering",
+      progress: 0,
+      locked: false
+    },
+    {
+      id: 'daily-life',
+      title: "Daily Activities",
+      description: "Common everyday phrases",
+      icon: Book,
+      color: "bg-amber-500",
+      culturalNote: "Practical language use",
       progress: 0,
       locked: false
     }
@@ -70,50 +84,59 @@ const VerbsHub = ({ onSelectSubLesson, onBack, languageName }) => {
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className={`text-5xl font-bold ${theme.text} mb-3`}>
-            Verbs
+            Stories
           </h1>
-          <p className={`text-xl ${theme.textSecondary}`}>Learn action words and conjugation</p>
+          <p className={`text-xl ${theme.textSecondary}`}>
+            Learn Mvskoke through cultural stories
+          </p>
         </div>
 
-        {/* Sub-lesson Cards */}
+        {/* Story Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {subLessons.map((lesson) => {
-            const Icon = lesson.icon;
+          {stories.map((story) => {
+            const Icon = story.icon;
             return (
               <button
-                key={lesson.id}
-                onClick={() => !lesson.locked && onSelectSubLesson(lesson.id)}
-                disabled={lesson.locked}
+                key={story.id}
+                onClick={() => !story.locked && onSelectStory(story.id)}
+                disabled={story.locked}
                 className={`relative group ${
-                  lesson.locked ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 cursor-pointer'
+                  story.locked ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 cursor-pointer'
                 } transition-all duration-300`}
               >
                 <div className={`${theme.card} rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-shadow`}>
                   {/* Icon */}
-                  <div className={`${lesson.color} w-20 h-20 rounded-full flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform`}>
+                  <div className={`${story.color} w-20 h-20 rounded-full flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform`}>
                     <Icon className="w-10 h-10 text-white" />
                   </div>
 
                   {/* Text */}
                   <h2 className={`text-2xl font-bold ${theme.text} mb-2 text-center`}>
-                    {lesson.title}
+                    {story.title}
                   </h2>
-                  <p className={`${theme.textSecondary} text-center mb-4`}>
-                    {lesson.description}
+                  <p className={`${theme.textSecondary} text-center mb-3`}>
+                    {story.description}
                   </p>
+                  
+                  {/* Cultural Note */}
+                  <div className={`${theme.card} rounded-xl p-3 mb-4 border-l-4 ${story.color.replace('bg-', 'border-')}`}>
+                    <p className={`text-sm ${theme.textSecondary} italic`}>
+                      🪶 {story.culturalNote}
+                    </p>
+                  </div>
 
                   {/* Progress bar */}
-                  {!lesson.locked && (
+                  {!story.locked && (
                     <div className={`w-full ${theme.progressBg} rounded-full h-2`}>
                       <div
-                        className={`${lesson.color} h-2 rounded-full transition-all duration-500`}
-                        style={{ width: `${lesson.progress}%` }}
+                        className={`${story.color} h-2 rounded-full transition-all duration-500`}
+                        style={{ width: `${story.progress}%` }}
                       />
                     </div>
                   )}
 
                   {/* Lock indicator */}
-                  {lesson.locked && (
+                  {story.locked && (
                     <div className={`absolute top-4 right-4 ${theme.card} rounded-full p-2`}>
                       <svg className={`w-5 h-5 ${theme.textSecondary}`} fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
@@ -126,11 +149,12 @@ const VerbsHub = ({ onSelectSubLesson, onBack, languageName }) => {
           })}
         </div>
 
-        {/* Coming Soon Notice */}
-        <div className={`${theme.card} rounded-2xl p-6 mt-8 border-l-4 border-blue-500`}>
-          <h3 className={`text-xl font-bold ${theme.text} mb-2`}>📚 Content In Progress</h3>
+        {/* Info box */}
+        <div className={`${theme.card} rounded-2xl p-6 mt-8 border-l-4 border-amber-500`}>
+          <h3 className={`text-xl font-bold ${theme.text} mb-2`}>About Story Mode</h3>
           <p className={`${theme.textSecondary}`}>
-            Verb conjugation lessons are being developed. Check back soon!
+            Each story combines different exercise types to help you apply what you've learned in real cultural contexts. 
+            You'll practice characters, sounds, vocabulary, and sentence building all in one lesson!
           </p>
         </div>
       </div>
@@ -187,4 +211,4 @@ const VerbsHub = ({ onSelectSubLesson, onBack, languageName }) => {
   );
 };
 
-export default VerbsHub;
+export default StoriesHub;

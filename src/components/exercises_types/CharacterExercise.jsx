@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Check, Volume2 } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 
 const CharacterExercise = ({ exercise, dropZoneActive, setDropZoneActive, handleDragStart, handleDrop, draggedItemRef }) => {

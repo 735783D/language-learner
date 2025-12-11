@@ -1,59 +1,100 @@
-import { Type, Layers, Hash, ArrowLeft  } from 'lucide-react';
-import ThemeToggle from './ThemeToggle';
-import { useTheme } from '../contexts/ThemeContext';
+import React from 'react';
+import { BookOpen, MessageCircle, Brain, Target, ArrowLeft, Book, Activity, Layers } from 'lucide-react';
+import { useTheme } from '../../contexts/ThemeContext';
+import ThemeToggle from '../ThemeToggle';
 
-
-const BasicsHub = ({ onSelectSubLesson, onBack, languageName }) => {
+const Hub = ({ onSelectLesson, languageName = "Spanish", languageData, onBack }) => {
   const { theme } = useTheme();
 
-  const subLessons = [
+  const lessons = [
     {
-      id: 'single',
-      title: "Single Letter Sounds",
-      description: "Learn the entire alphabet A-Y",
-      icon: Type,
+      id: 1,
+      title: "Basics",
+      description: "Characters & Sounds",
+      icon: BookOpen,
+      color: "bg-amber-500",
+      textColor: "text-amber-900",
+      progress: 0,
+      locked: false
+    },
+    {
+      id: 2,
+      title: "Words",
+      description: "Essential Vocabulary",
+      icon: MessageCircle,
+      color: "bg-emerald-500",
+      textColor: "text-emerald-900",
+      progress: 0,
+      locked: false
+    },
+    {
+      id: 3,
+      title: "Sentences",
+      description: "Basic Phrases",
+      icon: Brain,
+      color: "bg-teal-500",
+      textColor: "text-teal-900",
+      progress: 0,
+      locked: false
+    },
+    // {
+    //   id: 4,
+    //   title: "Writing",
+    //   description: "Practice Writing",
+    //   icon: Target,
+    //   color: "bg-orange-500",
+    //   textColor: "text-orange-900",
+    //   progress: 0,
+    //   locked: false
+    // },
+    {
+      id: 4,
+      title: "Verbs",
+      description: "Actions & Conjugation",
+      icon: Activity, // Import: import { Activity } from 'lucide-react';
       color: "bg-blue-500",
       progress: 0,
       locked: false
     },
     {
-      id: 'two-letter',
-      title: "Two-Letter Sounds",
-      description: "Consonant-vowel combinations",
+      id: 5,
+      title: "Grammar",
+      description: "Rules & Structure",
       icon: Layers,
-      color: "bg-purple-500",
+      color: "bg-indigo-500",
       progress: 0,
       locked: false
     },
     {
-      id: 'three-letter',
-      title: "Three-Letter Sounds",
-      description: "Complex three-lettersound patterns",
-      icon: Hash,
-      color: "bg-pink-500",
-      progress: 0,
-      locked: false
+      id: 6,
+      title: "Stories",
+      description: "Cultural Contexts",
+      icon: Book,
+      color: "bg-indigo-500"
     }
   ];
 
   return (
-      <div className={`min-h-screen ${theme.bg} relative overflow-hidden`}>
-        <ThemeToggle />
+    <div className={`min-h-screen ${theme.bg} relative overflow-hidden`}>
+      <ThemeToggle />
 
       {/* Back button */}
-      <button
-        onClick={onBack}
-        className={`fixed top-4 left-4 z-50 px-4 py-2 rounded-lg shadow hover:shadow-md transition ${theme.button} flex items-center gap-2`}
-      >
-        <ArrowLeft className="w-5 h-5" />
-        <span>Back</span>
-      </button>
+      {onBack && (
+        <button
+          onClick={onBack}
+          className={`fixed top-4 left-4 z-50 px-4 py-2 rounded-lg shadow hover:shadow-md transition ${theme.button} flex items-center gap-2`}
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span>Languages</span>
+        </button>
+      )}
 
       {/* Floating blobs background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="blob blob-1"></div>
         <div className="blob blob-2"></div>
         <div className="blob blob-3"></div>
+        <div className="blob blob-4"></div>
       </div>
 
       {/* Content */}
@@ -61,19 +102,19 @@ const BasicsHub = ({ onSelectSubLesson, onBack, languageName }) => {
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className={`text-5xl font-bold ${theme.text} mb-3`}>
-            Basics
+            {languageName}
           </h1>
-          <p className={`text-xl ${theme.textSecondary}`}>Choose a lesson type</p>
+          <p className={`text-xl ${theme.textSecondary}`}>Choose a lesson to begin</p>
         </div>
 
-        {/* Sub-lesson Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {subLessons.map((lesson) => {
+        {/* Lesson Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {lessons.map((lesson) => {
             const Icon = lesson.icon;
             return (
               <button
                 key={lesson.id}
-                onClick={() => !lesson.locked && onSelectSubLesson(lesson.id)}
+                onClick={() => !lesson.locked && onSelectLesson(lesson.id)}
                 disabled={lesson.locked}
                 className={`relative group ${
                   lesson.locked ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 cursor-pointer'
@@ -81,15 +122,15 @@ const BasicsHub = ({ onSelectSubLesson, onBack, languageName }) => {
               >
                 <div className={`${theme.card} rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-shadow`}>
                   {/* Icon */}
-                  <div className={`${lesson.color} w-20 h-20 rounded-full flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform`}>
+                  <div className={`${lesson.color} w-20 h-20 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
                     <Icon className="w-10 h-10 text-white" />
                   </div>
 
                   {/* Text */}
-                  <h2 className={`text-2xl font-bold ${theme.text} mb-2 text-center`}>
+                  <h2 className={`text-2xl font-bold ${theme.text} mb-2`}>
                     {lesson.title}
                   </h2>
-                  <p className={`${theme.textSecondary} text-center mb-4`}>
+                  <p className={`${theme.textSecondary} mb-4`}>
                     {lesson.description}
                   </p>
 
@@ -118,7 +159,7 @@ const BasicsHub = ({ onSelectSubLesson, onBack, languageName }) => {
         </div>
       </div>
 
-
+      {/* Blob animations */}
       <style>{`
         .blob {
           position: absolute;
@@ -131,7 +172,7 @@ const BasicsHub = ({ onSelectSubLesson, onBack, languageName }) => {
         .blob-1 {
           width: 300px;
           height: 300px;
-          background: linear-gradient(135deg, #3b82f6, #2563eb);
+          background: linear-gradient(135deg, #d97706, #f59e0b);
           top: -100px;
           left: -100px;
           animation-delay: 0s;
@@ -140,30 +181,42 @@ const BasicsHub = ({ onSelectSubLesson, onBack, languageName }) => {
         .blob-2 {
           width: 400px;
           height: 400px;
-          background: linear-gradient(135deg, #06b6d4, #0891b2);
+          background: linear-gradient(135deg, #059669, #10b981);
           top: 20%;
           right: -150px;
-          animation-delay: 7s;
+          animation-delay: 5s;
         }
 
         .blob-3 {
           width: 350px;
           height: 350px;
-          background: linear-gradient(135deg, #14b8a6, #0d9488);
+          background: linear-gradient(135deg, #0d9488, #14b8a6);
           bottom: -100px;
           left: 20%;
-          animation-delay: 14s;
+          animation-delay: 10s;
+        }
+
+        .blob-4 {
+          width: 250px;
+          height: 250px;
+          background: linear-gradient(135deg, #ea580c, #f97316);
+          bottom: 30%;
+          right: 10%;
+          animation-delay: 15s;
         }
 
         @keyframes float {
           0%, 100% {
             transform: translate(0, 0) scale(1);
           }
-          33% {
+          25% {
             transform: translate(30px, -30px) scale(1.1);
           }
-          66% {
+          50% {
             transform: translate(-20px, 20px) scale(0.9);
+          }
+          75% {
+            transform: translate(20px, 30px) scale(1.05);
           }
         }
       `}</style>
@@ -171,4 +224,4 @@ const BasicsHub = ({ onSelectSubLesson, onBack, languageName }) => {
   );
 };
 
-export default BasicsHub;
+export default Hub;
