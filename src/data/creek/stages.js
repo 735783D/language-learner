@@ -208,6 +208,11 @@ export const creekStages = {
           infinitive: verb.infinitive,
           translation: verb.translation,
           category: verb.category,
+          sound: verb.sound,
+          e_sound: verb.e_sound,
+          example: verb.example,
+          exampleTranslation: verb.exampleTranslation,
+          sound_file: verb.sound_file,
           type: "infinitive"
         }))
       },
@@ -245,11 +250,17 @@ export const creekStages = {
 
 
 
-
 // // Creek/Mvskoke Stages - Main curriculum structure
 // import { singleLetterExercises } from './alphabet/singleLetters';
 // import { twoLetterSounds } from './alphabet/twoLetters';
 // import { threeLetterSounds } from './alphabet/threeLetters';
+// import { 
+//   infinitives, 
+//   everydayVerbs, 
+//   presentTense, 
+//   futurePattern,
+//   commands 
+// } from './vocabulary/verbs';
 
 // export const creekStages = {
 //   1: {
@@ -434,5 +445,52 @@ export const creekStages = {
 //         correct: ["Hiyomat", "hesse"]
 //       }
 //     ]
+//   },
+
+//   4: {
+//     name: "Verbs",
+//     description: "Learn action words and conjugation",
+//     requiredScore: 20,
+//     type: "verbs",
+//     subLessons: {
+//       infinitives: {
+//         name: "Infinitives",
+//         description: "Learn basic verb forms (to eat, to sleep, etc.)",
+//         exercises: infinitives.map(verb => ({
+//           infinitive: verb.infinitive,
+//           translation: verb.translation,
+//           category: verb.category,
+//           type: "infinitive"
+//         }))
+//       },
+//       present: {
+//         name: "Present Tense",
+//         description: "I am eating, you are sleeping",
+//         exercises: presentTense.map(verb => ({
+//           infinitive: verb.infinitive,
+//           present: verb.present,
+//           translation: verb.translation,
+//           type: "present"
+//         }))
+//       },
+//       past: {
+//         name: "Past Tense",
+//         description: "Actions that already happened",
+//         exercises: [] // To be added when past tense data is available
+//       },
+//       future: {
+//         name: "Future Tense",
+//         description: "I am going to..., You are going to...",
+//         exercises: futurePattern.examples.map(verb => ({
+//           infinitive: verb.infinitive,
+//           root: verb.root,
+//           firstPerson: verb.firstPerson,
+//           secondPerson: verb.secondPerson,
+//           question: verb.question,
+//           translation: verb.translation,
+//           type: "future"
+//         }))
+//       }
+//     }
 //   }
 // };

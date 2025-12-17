@@ -18,6 +18,10 @@ const InfinitivesLesson = ({ onBack, languageData }) => {
   const [dropZoneActive, setDropZoneActive] = useState(false);
   const draggedItemRef = useRef(null);
   const audioRef = useRef(null);
+  const isDragging = useRef(false);
+  const dragData = useRef(null);
+  const [dragPosition, setDragPosition] = useState(null);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
   
   const stageData = languageData[4];
 
@@ -60,16 +64,25 @@ const InfinitivesLesson = ({ onBack, languageData }) => {
   const currentIntroVerb = allInfinitives[currentIntroIndex];
   const requiredScore = 12;
 
+  // Debug: Check what data we're getting
+  useEffect(() => {
+    if (mode === 'intro' && currentIntroVerb) {
+      console.log('Current verb data:', currentIntroVerb);
+      console.log('Has sound_file?', currentIntroVerb.sound_file);
+      console.log('sound_file not empty?', currentIntroVerb.sound_file && currentIntroVerb.sound_file.trim() !== '');
+    }
+  }, [currentIntroVerb, mode]);
+
   // Audio playback
   const playSound = useCallback(() => {
-    if (currentIntroVerb?.sound_file && audioRef.current) {
+    if (currentIntroVerb?.sound_file && currentIntroVerb.sound_file.trim() !== '' && audioRef.current) {
       audioRef.current.play().catch(err => console.log('Audio play failed:', err));
     }
   }, [currentIntroVerb]);
 
   // Play sound when verb changes
   useEffect(() => {
-    if (mode === 'intro' && currentIntroVerb?.sound_file && audioRef.current) {
+    if (mode === 'intro' && currentIntroVerb?.sound_file && currentIntroVerb.sound_file.trim() !== '' && audioRef.current) {
       audioRef.current.load();
       const timer = setTimeout(() => {
         playSound();
@@ -78,51 +91,169 @@ const InfinitivesLesson = ({ onBack, languageData }) => {
     }
   }, [currentIntroVerb, mode, playSound]);
 
-  // Handle drag start for intro
-  const handleDragStart = (e, item) => {
-    draggedItemRef.current = item;
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', item);
-  };
-
-  // Handle drop for intro
+  // IMPORTANT: handleDrop MUST be defined BEFORE endDrag since endDrag calls it
   const handleDrop = (e) => {
+    console.log('=== HANDLE DROP CALLED ===');
+    console.log('draggedItemRef.current:', draggedItemRef.current);
+    
     e.preventDefault();
     setDropZoneActive(false);
     
     if (!draggedItemRef.current) {
+      console.log('❌ No draggedItemRef - returning early');
       return;
     }
 
     // Always correct in intro mode (exposure-based learning)
     setFeedback("correct");
+    console.log('✅ Set feedback to correct');
 
     setTimeout(() => {
-      if (currentIntroIndex < allInfinitives.length - 1) {
-        setCurrentIntroIndex(currentIntroIndex + 1);
-        setFeedback(null);
-        draggedItemRef.current = null;
-      } else {
-        // Finished intro, move to quiz
-        setMode('quiz');
-        setFeedback(null);
-        draggedItemRef.current = null;
-      }
+      // Use functional update to get the CURRENT value, not stale closure
+      setCurrentIntroIndex((prevIndex) => {
+        console.log('prevIndex:', prevIndex);
+        console.log('allInfinitives.length:', allInfinitives.length);
+        
+        if (prevIndex < allInfinitives.length - 1) {
+          console.log('➡️ Moving to next verb:', prevIndex + 1);
+          setFeedback(null);
+          draggedItemRef.current = null;
+          return prevIndex + 1;
+        } else {
+          console.log('🏁 Finished intro, moving to quiz');
+          // Finished intro, move to quiz
+          setMode('quiz');
+          setFeedback(null);
+          draggedItemRef.current = null;
+          return prevIndex;
+        }
+      });
     }, 1500);
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setDropZoneActive(true);
-  };
-
-  const handleDragLeave = () => {
-    setDropZoneActive(false);
   };
 
   const handleSkipToQuiz = () => {
     setMode('quiz');
   };
+
+  // Mobile drag handlers - these don't reference handleDrop
+  const startDrag = (e, infinitive, clientX, clientY) => {
+    console.log('🎯 START DRAG:', infinitive);
+    isDragging.current = true;
+    dragData.current = infinitive;
+    
+    const target = e.currentTarget;
+    const rect = target.getBoundingClientRect();
+    setOffset({
+      x: clientX - (rect.left + rect.width / 2),
+      y: clientY - (rect.top + rect.height / 2)
+    });
+    
+    setDragPosition({ 
+      x: clientX - (clientX - (rect.left + rect.width / 2)), 
+      y: clientY - (clientY - (rect.top + rect.height / 2)) 
+    });
+    
+    // ALWAYS set draggedItemRef regardless of drag type
+    draggedItemRef.current = infinitive;
+    console.log('Set draggedItemRef.current to:', draggedItemRef.current);
+    
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', infinitive);
+    }
+  };
+
+  const moveDrag = (clientX, clientY) => {
+    if (!isDragging.current) return;
+    setDragPosition({ x: clientX - offset.x, y: clientY - offset.y });
+    
+    const dropZone = document.querySelector('[data-drop-circle]');
+    if (dropZone) {
+      const rect = dropZone.getBoundingClientRect();
+      const isOver = (
+        clientX >= rect.left &&
+        clientX <= rect.right &&
+        clientY >= rect.top &&
+        clientY <= rect.bottom
+      );
+      setDropZoneActive(isOver);
+    }
+  };
+
+  // endDrag defined AFTER handleDrop so it can safely call it
+  const endDrag = (e, clientX, clientY) => {
+    console.log('🛑 END DRAG');
+    console.log('isDragging.current:', isDragging.current);
+    
+    if (!isDragging.current) return;
+    
+    const dropZone = document.querySelector('[data-drop-circle]');
+    if (dropZone) {
+      const rect = dropZone.getBoundingClientRect();
+      const droppedInZone = (
+        clientX >= rect.left &&
+        clientX <= rect.right &&
+        clientY >= rect.top &&
+        clientY <= rect.bottom
+      );
+      
+      console.log('Dropped in zone?', droppedInZone);
+      
+      if (droppedInZone) {
+        console.log('✅ Calling handleDrop');
+        handleDrop(e);
+      }
+    }
+    
+    isDragging.current = false;
+    dragData.current = null;
+    setDragPosition(null);
+    setDropZoneActive(false);
+  };
+
+  // Global mouse/touch event listeners
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (isDragging.current) {
+        e.preventDefault();
+        moveDrag(e.clientX, e.clientY);
+      }
+    };
+
+    const handleMouseUp = (e) => {
+      if (isDragging.current) {
+        endDrag(e, e.clientX, e.clientY);
+      }
+    };
+
+    const handleTouchMove = (e) => {
+      if (isDragging.current) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        moveDrag(touch.clientX, touch.clientY);
+      }
+    };
+
+    const handleTouchEnd = (e) => {
+      if (isDragging.current) {
+        const touch = e.changedTouches[0];
+        endDrag(e, touch.clientX, touch.clientY);
+      }
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleAnswerClick = (answer) => {
     if (feedback) return;
@@ -235,7 +366,7 @@ const InfinitivesLesson = ({ onBack, languageData }) => {
         <ThemeToggle />
 
         {/* Audio element */}
-        {currentIntroVerb?.sound_file && (
+        {currentIntroVerb?.sound_file && currentIntroVerb.sound_file.trim() !== '' && (
           <audio ref={audioRef} src={encodeURI(currentIntroVerb.sound_file)} preload="auto" />
         )}
 
@@ -278,20 +409,39 @@ const InfinitivesLesson = ({ onBack, languageData }) => {
             {/* Draggable verb */}
             <div
               draggable
-              onDragStart={(e) => handleDragStart(e, currentIntroVerb.infinitive)}
+              onDragStart={(e) => {
+                startDrag(e, currentIntroVerb.infinitive, e.clientX, e.clientY);
+                setDropZoneActive(false);
+              }}
+              onDragEnd={(e) => {
+                setDropZoneActive(false);
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                startDrag(e, currentIntroVerb.infinitive, e.clientX, e.clientY);
+              }}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                startDrag(e, currentIntroVerb.infinitive, touch.clientX, touch.clientY);
+              }}
               className="cursor-move touch-none relative"
-              style={{ touchAction: 'none', userSelect: 'none' }}
+              style={{ 
+                touchAction: 'none', 
+                userSelect: 'none',
+                opacity: dragPosition ? 0.3 : 1
+              }}
             >
-              <div className={`text-9xl font-bold select-none ${theme.accent}`}>
+              <div className={`text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold select-none ${theme.accent}`}>
                 {currentIntroVerb.infinitive}
               </div>
             </div>
 
-            {/* Sounds like section with audio button */}
+            {/* Translation with audio button */}
             <div className="space-y-3 text-center">
-              <div className={`text-xl ${theme.textSecondary} flex items-center justify-center gap-3`}>
-                <span>Sounds like: <span className="font-semibold">{currentIntroVerb.sound || 'N/A'}</span></span>
-                {currentIntroVerb.sound_file && (
+              <div className={`text-2xl ${theme.textSecondary} flex items-center justify-center gap-3`}>
+                <span className="font-semibold">{currentIntroVerb.translation}</span>
+                {currentIntroVerb.sound_file && currentIntroVerb.sound_file.trim() !== '' && (
                   <button
                     onClick={playSound}
                     className={`p-2 rounded-full ${theme.card} hover:scale-110 transition-transform`}
@@ -303,22 +453,46 @@ const InfinitivesLesson = ({ onBack, languageData }) => {
               </div>
             </div>
 
-            {/* English like section */}
-            <div className="space-y-3 text-center">
-              <div className={`text-xl ${theme.textSecondary} flex items-center justify-center gap-3`}>
-                <span>English like: <span className="font-semibold">{currentIntroVerb.e_sound || currentIntroVerb.translation}</span></span>
+            {/* Sounds like section */}
+            {currentIntroVerb.sound && currentIntroVerb.sound.trim() !== '' && (
+              <div className="space-y-3 text-center">
+                <div className={`text-xl ${theme.textSecondary} flex items-center justify-center gap-3`}>
+                  <span>Sounds like: <span className="font-semibold">{currentIntroVerb.sound}</span></span>
+                </div>
               </div>
+            )}
 
-              {/* Example card */}
+            {/* English like section */}
+            {currentIntroVerb.e_sound && currentIntroVerb.e_sound.trim() !== '' && (
+              <div className="space-y-3 text-center">
+                <div className={`text-xl ${theme.textSecondary} flex items-center justify-center gap-3`}>
+                  <span>English like: <span className="font-semibold">{currentIntroVerb.e_sound}</span></span>
+                </div>
+              </div>
+            )}
+
+            {/* Example card */}
+            {currentIntroVerb.example && currentIntroVerb.example.trim() !== '' && (
               <div className={`${theme.card} p-5 rounded-xl`}>
                 <div className={`text-2xl font-bold ${theme.text} mb-1`}>
-                  {currentIntroVerb.example || currentIntroVerb.infinitive}
+                  {currentIntroVerb.example}
                 </div>
-                <div className={`text-lg ${theme.textSecondary}`}>
-                  {currentIntroVerb.exampleTranslation || currentIntroVerb.translation}
+                {currentIntroVerb.exampleTranslation && currentIntroVerb.exampleTranslation.trim() !== '' && (
+                  <div className={`text-lg ${theme.textSecondary}`}>
+                    {currentIntroVerb.exampleTranslation}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Category badge */}
+            {currentIntroVerb.category && (
+              <div className={`${theme.card} p-4 rounded-xl`}>
+                <div className={`text-sm ${theme.accent} uppercase tracking-wider`}>
+                  {currentIntroVerb.category}
                 </div>
               </div>
-            </div>
+            )}
 
             <div className={`text-sm ${theme.textSecondary} mt-4`}>
               Drag to the circle below to continue
@@ -337,9 +511,26 @@ const InfinitivesLesson = ({ onBack, languageData }) => {
 
           {/* Drop zone circle - matching CharacterExercise */}
           <div
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
+            data-drop-circle
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setDropZoneActive(true);
+            }}
+            onDragEnter={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setDropZoneActive(true);
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setDropZoneActive(false);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              handleDrop(e);
+            }}
             className={`w-40 h-40 rounded-full border-4 border-dashed flex items-center justify-center transition-all ${
               dropZoneActive 
                 ? 'border-amber-400 bg-amber-400/20 scale-110' 
@@ -349,6 +540,22 @@ const InfinitivesLesson = ({ onBack, languageData }) => {
             <Check className={`w-16 h-16 ${dropZoneActive ? 'text-amber-400' : theme.textSecondary}`} />
           </div>
         </div>
+
+        {/* Drag ghost for mobile */}
+        {dragPosition && (
+          <div
+            className="fixed pointer-events-none z-50"
+            style={{
+              left: dragPosition.x,
+              top: dragPosition.y,
+              transform: 'translate(-50%, -50%)'
+            }}
+          >
+            <div className={`text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold select-none ${theme.accent} opacity-80`}>
+              {currentIntroVerb.infinitive}
+            </div>
+          </div>
+        )}
 
         {/* Feedback */}
         {feedback && (
@@ -368,7 +575,6 @@ const InfinitivesLesson = ({ onBack, languageData }) => {
   }
 
   // QUIZ MODE (rest of the existing component)
-
   return (
     <div className={`fixed inset-0 ${theme.bg} overflow-hidden`} style={{userSelect: 'none', WebkitUserSelect: 'none'}}>
       <ThemeToggle />
@@ -495,14 +701,17 @@ const InfinitivesLesson = ({ onBack, languageData }) => {
 export default InfinitivesLesson;
 
 
-// import React, { useState, useMemo } from 'react';
-// import { Star, X, Check } from 'lucide-react';
+
+// import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
+// import { Star, X, Check, Volume2 } from 'lucide-react';
 // import CompletionModal from '../../CompletionModal';
 // import { useTheme } from '../../../contexts/ThemeContext';
 // import ThemeToggle from '../../ThemeToggle';
 
 // const InfinitivesLesson = ({ onBack, languageData }) => {
 //   const { theme } = useTheme();
+//   const [mode, setMode] = useState('intro'); // 'intro' or 'quiz'
+//   const [currentIntroIndex, setCurrentIntroIndex] = useState(0);
 //   const [currentExercise, setCurrentExercise] = useState(0);
 //   const [score, setScore] = useState(0);
 //   const [strikes, setStrikes] = useState(0);
@@ -510,22 +719,33 @@ export default InfinitivesLesson;
 //   const [showCompletion, setShowCompletion] = useState(false);
 //   const [showFailure, setShowFailure] = useState(false);
 //   const [selectedAnswer, setSelectedAnswer] = useState(null);
+//   const [dropZoneActive, setDropZoneActive] = useState(false);
+//   const draggedItemRef = useRef(null);
+//   const audioRef = useRef(null);
+//   const isDragging = useRef(false);
+//   const dragData = useRef(null);
+//   const [dragPosition, setDragPosition] = useState(null);
+//   const [offset, setOffset] = useState({ x: 0, y: 0 });
   
 //   const stageData = languageData[4];
 
+//   // Get all infinitives for intro
+//   const allInfinitives = useMemo(() => {
+//     if (!stageData?.subLessons?.infinitives?.exercises) return [];
+//     return stageData.subLessons.infinitives.exercises;
+//   }, [stageData]);
+
 //   // Generate randomized exercises
 //   const exercises = useMemo(() => {
-//     if (!stageData?.subLessons?.infinitives?.exercises) return [];
-    
-//     const allExercises = stageData.subLessons.infinitives.exercises;
+//     if (!allInfinitives || allInfinitives.length === 0) return [];
     
 //     // Create matching exercises: show infinitive, pick translation
-//     return [...allExercises]
+//     return [...allInfinitives]
 //       .sort(() => Math.random() - 0.5)
 //       .slice(0, 15)
 //       .map(verb => {
 //         // Get 3 wrong answers
-//         const wrongAnswers = allExercises
+//         const wrongAnswers = allInfinitives
 //           .filter(v => v.translation !== verb.translation)
 //           .sort(() => Math.random() - 0.5)
 //           .slice(0, 3)
@@ -536,16 +756,208 @@ export default InfinitivesLesson;
 //           .sort(() => Math.random() - 0.5);
         
 //         return {
-//           word: verb.word,
+//           infinitive: verb.infinitive,
 //           correctAnswer: verb.translation,
 //           options,
 //           category: verb.category
 //         };
 //       });
-//   }, [stageData]);
+//   }, [allInfinitives]);
 
 //   const exercise = exercises[currentExercise];
+//   const currentIntroVerb = allInfinitives[currentIntroIndex];
 //   const requiredScore = 12;
+
+//   // Debug: Check what data we're getting
+//   useEffect(() => {
+//     if (mode === 'intro' && currentIntroVerb) {
+//       console.log('Current verb data:', currentIntroVerb);
+//       console.log('Has sound_file?', currentIntroVerb.sound_file);
+//       console.log('sound_file not empty?', currentIntroVerb.sound_file && currentIntroVerb.sound_file.trim() !== '');
+//     }
+//   }, [currentIntroVerb, mode]);
+
+//   // Audio playback
+//   const playSound = useCallback(() => {
+//     if (currentIntroVerb?.sound_file && currentIntroVerb.sound_file.trim() !== '' && audioRef.current) {
+//       audioRef.current.play().catch(err => console.log('Audio play failed:', err));
+//     }
+//   }, [currentIntroVerb]);
+
+//   // Play sound when verb changes
+//   useEffect(() => {
+//     if (mode === 'intro' && currentIntroVerb?.sound_file && currentIntroVerb.sound_file.trim() !== '' && audioRef.current) {
+//       audioRef.current.load();
+//       const timer = setTimeout(() => {
+//         playSound();
+//       }, 100);
+//       return () => clearTimeout(timer);
+//     }
+//   }, [currentIntroVerb, mode, playSound]);
+
+//   // IMPORTANT: handleDrop MUST be defined BEFORE endDrag since endDrag calls it
+//   const handleDrop = (e) => {
+//     console.log('=== HANDLE DROP CALLED ===');
+//     console.log('draggedItemRef.current:', draggedItemRef.current);
+    
+//     e.preventDefault();
+//     setDropZoneActive(false);
+    
+//     if (!draggedItemRef.current) {
+//       console.log('❌ No draggedItemRef - returning early');
+//       return;
+//     }
+
+//     // Always correct in intro mode (exposure-based learning)
+//     setFeedback("correct");
+//     console.log('✅ Set feedback to correct');
+
+//     setTimeout(() => {
+//       // Use functional update to get the CURRENT value, not stale closure
+//       setCurrentIntroIndex((prevIndex) => {
+//         console.log('prevIndex:', prevIndex);
+//         console.log('allInfinitives.length:', allInfinitives.length);
+        
+//         if (prevIndex < allInfinitives.length - 1) {
+//           console.log('➡️ Moving to next verb:', prevIndex + 1);
+//           setFeedback(null);
+//           draggedItemRef.current = null;
+//           return prevIndex + 1;
+//         } else {
+//           console.log('🏁 Finished intro, moving to quiz');
+//           // Finished intro, move to quiz
+//           setMode('quiz');
+//           setFeedback(null);
+//           draggedItemRef.current = null;
+//           return prevIndex;
+//         }
+//       });
+//     }, 1500);
+//   };
+
+//   const handleSkipToQuiz = () => {
+//     setMode('quiz');
+//   };
+
+//   // Mobile drag handlers - these don't reference handleDrop
+//   const startDrag = (e, infinitive, clientX, clientY) => {
+//     console.log('🎯 START DRAG:', infinitive);
+//     isDragging.current = true;
+//     dragData.current = infinitive;
+    
+//     const target = e.currentTarget;
+//     const rect = target.getBoundingClientRect();
+//     setOffset({
+//       x: clientX - (rect.left + rect.width / 2),
+//       y: clientY - (rect.top + rect.height / 2)
+//     });
+    
+//     setDragPosition({ 
+//       x: clientX - (clientX - (rect.left + rect.width / 2)), 
+//       y: clientY - (clientY - (rect.top + rect.height / 2)) 
+//     });
+    
+//     // ALWAYS set draggedItemRef regardless of drag type
+//     draggedItemRef.current = infinitive;
+//     console.log('Set draggedItemRef.current to:', draggedItemRef.current);
+    
+//     if (e.dataTransfer) {
+//       e.dataTransfer.effectAllowed = 'move';
+//       e.dataTransfer.setData('text/plain', infinitive);
+//     }
+//   };
+
+//   const moveDrag = (clientX, clientY) => {
+//     if (!isDragging.current) return;
+//     setDragPosition({ x: clientX - offset.x, y: clientY - offset.y });
+    
+//     const dropZone = document.querySelector('[data-drop-circle]');
+//     if (dropZone) {
+//       const rect = dropZone.getBoundingClientRect();
+//       const isOver = (
+//         clientX >= rect.left &&
+//         clientX <= rect.right &&
+//         clientY >= rect.top &&
+//         clientY <= rect.bottom
+//       );
+//       setDropZoneActive(isOver);
+//     }
+//   };
+
+//   // endDrag defined AFTER handleDrop so it can safely call it
+//   const endDrag = (e, clientX, clientY) => {
+//     console.log('🛑 END DRAG');
+//     console.log('isDragging.current:', isDragging.current);
+    
+//     if (!isDragging.current) return;
+    
+//     const dropZone = document.querySelector('[data-drop-circle]');
+//     if (dropZone) {
+//       const rect = dropZone.getBoundingClientRect();
+//       const droppedInZone = (
+//         clientX >= rect.left &&
+//         clientX <= rect.right &&
+//         clientY >= rect.top &&
+//         clientY <= rect.bottom
+//       );
+      
+//       console.log('Dropped in zone?', droppedInZone);
+      
+//       if (droppedInZone) {
+//         console.log('✅ Calling handleDrop');
+//         handleDrop(e);
+//       }
+//     }
+    
+//     isDragging.current = false;
+//     dragData.current = null;
+//     setDragPosition(null);
+//     setDropZoneActive(false);
+//   };
+
+//   // Global mouse/touch event listeners
+//   useEffect(() => {
+//     const handleMouseMove = (e) => {
+//       if (isDragging.current) {
+//         e.preventDefault();
+//         moveDrag(e.clientX, e.clientY);
+//       }
+//     };
+
+//     const handleMouseUp = (e) => {
+//       if (isDragging.current) {
+//         endDrag(e, e.clientX, e.clientY);
+//       }
+//     };
+
+//     const handleTouchMove = (e) => {
+//       if (isDragging.current) {
+//         e.preventDefault();
+//         const touch = e.touches[0];
+//         moveDrag(touch.clientX, touch.clientY);
+//       }
+//     };
+
+//     const handleTouchEnd = (e) => {
+//       if (isDragging.current) {
+//         const touch = e.changedTouches[0];
+//         endDrag(e, touch.clientX, touch.clientY);
+//       }
+//     };
+
+//     document.addEventListener('mousemove', handleMouseMove);
+//     document.addEventListener('mouseup', handleMouseUp);
+//     document.addEventListener('touchmove', handleTouchMove, { passive: false });
+//     document.addEventListener('touchend', handleTouchEnd);
+
+//     return () => {
+//       document.removeEventListener('mousemove', handleMouseMove);
+//       document.removeEventListener('mouseup', handleMouseUp);
+//       document.removeEventListener('touchmove', handleTouchMove);
+//       document.removeEventListener('touchend', handleTouchEnd);
+//     };
+//   // eslint-disable-next-line react-hooks/exhaustive-deps
+//   }, []);
 
 //   const handleAnswerClick = (answer) => {
 //     if (feedback) return;
@@ -643,7 +1055,7 @@ export default InfinitivesLesson;
 //     );
 //   }
 
-//   if (!exercises || exercises.length === 0) {
+//   if (!exercises || exercises.length === 0 || !allInfinitives || allInfinitives.length === 0) {
 //     return (
 //       <div className={`fixed inset-0 ${theme.bg} flex items-center justify-center`}>
 //         <div className={`text-2xl ${theme.text}`}>Loading exercises...</div>
@@ -651,6 +1063,222 @@ export default InfinitivesLesson;
 //     );
 //   }
 
+//   // INTRO MODE: Drag-and-drop flashcards
+//   if (mode === 'intro') {
+//     return (
+//       <div className={`fixed inset-0 ${theme.bg} overflow-hidden`} style={{userSelect: 'none', WebkitUserSelect: 'none'}}>
+//         <ThemeToggle />
+
+//         {/* Audio element */}
+//         {currentIntroVerb?.sound_file && currentIntroVerb.sound_file.trim() !== '' && (
+//           <audio ref={audioRef} src={encodeURI(currentIntroVerb.sound_file)} preload="auto" />
+//         )}
+
+//         {/* Back button */}
+//         <button
+//           onClick={onBack}
+//           className={`fixed top-4 left-4 z-50 px-4 py-2 rounded-lg shadow hover:shadow-md transition ${theme.button}`}
+//         >
+//           ← Back
+//         </button>
+
+//         {/* Header */}
+//         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-40 text-center">
+//           <h1 className={`text-2xl font-bold ${theme.text}`}>Learn Infinitives</h1>
+//           <p className={`text-sm ${theme.textSecondary}`}>Drag each verb to the circle</p>
+//         </div>
+
+//         {/* Progress */}
+//         <div className="fixed top-20 left-0 right-0 z-40 px-8">
+//           <div className="max-w-2xl mx-auto">
+//             <div className="flex justify-between items-center mb-2 text-sm">
+//               <span className={`font-semibold ${theme.textSecondary}`}>
+//                 {currentIntroIndex + 1}/{allInfinitives.length}
+//               </span>
+//             </div>
+//             <div className={`w-full ${theme.progressBg} rounded-full h-2`}>
+//               <div
+//                 className={`${theme.progress} h-2 rounded-full transition-all duration-500`}
+//                 style={{ width: `${((currentIntroIndex + 1) / allInfinitives.length) * 100}%` }}
+//               />
+//             </div>
+//           </div>
+//         </div>
+
+//         {/* Main content - matching CharacterExercise layout */}
+//         <div className="absolute inset-0 pt-32 pb-8 flex flex-col items-center justify-between px-8">
+          
+//           {/* Top section - draggable card and info */}
+//           <div className="flex-1 flex flex-col items-center justify-center space-y-6">
+//             {/* Draggable verb */}
+//             <div
+//               draggable
+//               onDragStart={(e) => {
+//                 startDrag(e, currentIntroVerb.infinitive, e.clientX, e.clientY);
+//                 setDropZoneActive(false);
+//               }}
+//               onDragEnd={(e) => {
+//                 setDropZoneActive(false);
+//               }}
+//               onMouseDown={(e) => {
+//                 e.preventDefault();
+//                 startDrag(e, currentIntroVerb.infinitive, e.clientX, e.clientY);
+//               }}
+//               onTouchStart={(e) => {
+//                 e.preventDefault();
+//                 const touch = e.touches[0];
+//                 startDrag(e, currentIntroVerb.infinitive, touch.clientX, touch.clientY);
+//               }}
+//               className="cursor-move touch-none relative"
+//               style={{ 
+//                 touchAction: 'none', 
+//                 userSelect: 'none',
+//                 opacity: dragPosition ? 0.3 : 1
+//               }}
+//             >
+//               <div className={`text-4xl font-bold select-none ${theme.accent}`}>
+//                 {currentIntroVerb.infinitive}
+//               </div>
+//             </div>
+
+//             {/* Translation with audio button */}
+//             <div className="space-y-3 text-center">
+//               <div className={`text-2xl ${theme.textSecondary} flex items-center justify-center gap-3`}>
+//                 <span className="font-semibold">{currentIntroVerb.translation}</span>
+//                 {currentIntroVerb.sound_file && currentIntroVerb.sound_file.trim() !== '' && (
+//                   <button
+//                     onClick={playSound}
+//                     className={`p-2 rounded-full ${theme.card} hover:scale-110 transition-transform`}
+//                     aria-label="Play sound"
+//                   >
+//                     <Volume2 className={`w-6 h-6 ${theme.accent}`} />
+//                   </button>
+//                 )}
+//               </div>
+//             </div>
+
+//             {/* Sounds like section */}
+//             {currentIntroVerb.sound && currentIntroVerb.sound.trim() !== '' && (
+//               <div className="space-y-3 text-center">
+//                 <div className={`text-xl ${theme.textSecondary} flex items-center justify-center gap-3`}>
+//                   <span>Sounds like: <span className="font-semibold">{currentIntroVerb.sound}</span></span>
+//                 </div>
+//               </div>
+//             )}
+
+//             {/* English like section */}
+//             {currentIntroVerb.e_sound && currentIntroVerb.e_sound.trim() !== '' && (
+//               <div className="space-y-3 text-center">
+//                 <div className={`text-xl ${theme.textSecondary} flex items-center justify-center gap-3`}>
+//                   <span>English like: <span className="font-semibold">{currentIntroVerb.e_sound}</span></span>
+//                 </div>
+//               </div>
+//             )}
+
+//             {/* Example card */}
+//             {currentIntroVerb.example && currentIntroVerb.example.trim() !== '' && (
+//               <div className={`${theme.card} p-5 rounded-xl`}>
+//                 <div className={`text-2xl font-bold ${theme.text} mb-1`}>
+//                   {currentIntroVerb.example}
+//                 </div>
+//                 {currentIntroVerb.exampleTranslation && currentIntroVerb.exampleTranslation.trim() !== '' && (
+//                   <div className={`text-lg ${theme.textSecondary}`}>
+//                     {currentIntroVerb.exampleTranslation}
+//                   </div>
+//                 )}
+//               </div>
+//             )}
+
+//             {/* Category badge */}
+//             {currentIntroVerb.category && (
+//               <div className={`${theme.card} p-4 rounded-xl`}>
+//                 <div className={`text-sm ${theme.accent} uppercase tracking-wider`}>
+//                   {currentIntroVerb.category}
+//                 </div>
+//               </div>
+//             )}
+
+//             <div className={`text-sm ${theme.textSecondary} mt-4`}>
+//               Drag to the circle below to continue
+//             </div>
+
+//             {/* Skip button */}
+//             <div className="text-center mt-2">
+//               <button
+//                 onClick={handleSkipToQuiz}
+//                 className={`${theme.textSecondary} hover:${theme.text} underline text-sm`}
+//               >
+//                 Skip to quiz →
+//               </button>
+//             </div>
+//           </div>
+
+//           {/* Drop zone circle - matching CharacterExercise */}
+//           <div
+//             data-drop-circle
+//             onDragOver={(e) => {
+//               e.preventDefault();
+//               e.stopPropagation();
+//               setDropZoneActive(true);
+//             }}
+//             onDragEnter={(e) => {
+//               e.preventDefault();
+//               e.stopPropagation();
+//               setDropZoneActive(true);
+//             }}
+//             onDragLeave={(e) => {
+//               e.preventDefault();
+//               e.stopPropagation();
+//               setDropZoneActive(false);
+//             }}
+//             onDrop={(e) => {
+//               e.preventDefault();
+//               handleDrop(e);
+//             }}
+//             className={`w-40 h-40 rounded-full border-4 border-dashed flex items-center justify-center transition-all ${
+//               dropZoneActive 
+//                 ? 'border-amber-400 bg-amber-400/20 scale-110' 
+//                 : `border-transparent ${theme.card}`
+//             }`}
+//           >
+//             <Check className={`w-16 h-16 ${dropZoneActive ? 'text-amber-400' : theme.textSecondary}`} />
+//           </div>
+//         </div>
+
+//         {/* Drag ghost for mobile */}
+//         {dragPosition && (
+//           <div
+//             className="fixed pointer-events-none z-50"
+//             style={{
+//               left: dragPosition.x,
+//               top: dragPosition.y,
+//               transform: 'translate(-50%, -50%)'
+//             }}
+//           >
+//             <div className={`text-9xl font-bold select-none ${theme.accent} opacity-80`}>
+//               {currentIntroVerb.infinitive}
+//             </div>
+//           </div>
+//         )}
+
+//         {/* Feedback */}
+//         {feedback && (
+//           <div className={`fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 px-6 py-4 rounded-xl shadow-lg ${
+//             feedback === "correct" ? "bg-green-500 text-white" : "bg-red-500 text-white"
+//           }`}>
+//             <div className="flex items-center gap-2">
+//               {feedback === "correct" ? <Check className="w-6 h-6" /> : <X className="w-6 h-6" />}
+//               <span className="font-bold text-xl">
+//                 {feedback === "correct" ? "Mvto!" : "Try again!"}
+//               </span>
+//             </div>
+//           </div>
+//         )}
+//       </div>
+//     );
+//   }
+
+//   // QUIZ MODE (rest of the existing component)
 //   return (
 //     <div className={`fixed inset-0 ${theme.bg} overflow-hidden`} style={{userSelect: 'none', WebkitUserSelect: 'none'}}>
 //       <ThemeToggle />
@@ -702,7 +1330,7 @@ export default InfinitivesLesson;
 //             </p>
 //             <div className={`${theme.card} p-8 rounded-3xl shadow-lg`}>
 //               <div className={`text-5xl font-bold ${theme.text}`}>
-//                 {exercise.word}
+//                 {exercise.infinitive}
 //               </div>
 //               {exercise.category && (
 //                 <div className={`text-sm ${theme.textSecondary} mt-2 uppercase tracking-wider`}>
