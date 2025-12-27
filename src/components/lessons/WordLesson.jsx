@@ -2,11 +2,13 @@ import React, { useState, useRef, useMemo } from 'react';
 import { Star, X, Check } from 'lucide-react';
 import MatchExercise from '../exercises_types/MatchExercise';
 import CompletionModal from '../CompletionModal';
+import InstructionCard from '../InstructionCard';
 import { useTheme } from '../../contexts/ThemeContext';
 import ThemeToggle from '../ThemeToggle';
 
 const WordsLesson = ({ onBack, languageData }) => {
   const { theme } = useTheme();
+  const [showInstructions, setShowInstructions] = useState(true);
   const [currentExercise, setCurrentExercise] = useState(0);
   const [score, setScore] = useState(0);
   const [strikes, setStrikes] = useState(0);
@@ -16,6 +18,49 @@ const WordsLesson = ({ onBack, languageData }) => {
   const draggedItemRef = useRef(null);
   
   const stageData = languageData[2];
+
+  // Instruction content for word matching
+  const instructionContent = {
+    title: "Word Matching",
+    subtitle: "Connect Mvskoke words with their English meanings",
+    icon: "🔗",
+    explanation: "In this exercise, you'll practice matching Mvskoke words with their English translations. You can drag the center word to one of the corner answers, or drag a corner answer to the center word. This helps build your vocabulary through active recall.",
+    explanationTitle: "How it works",
+    examples: [
+      {
+        mvskoke: "oske",
+        english: "rain"
+      },
+      {
+        mvskoke: "hvtke",
+        english: "white"
+      },
+      {
+        mvskoke: "este",
+        english: "person"
+      },
+      {
+        mvskoke: "efv",
+        english: "dog"
+      }
+    ],
+    rules: [
+      {
+        icon: "↔️",
+        text: "Drag the center word to the correct corner, OR drag a corner answer to the center word - both work!"
+      },
+      {
+        icon: "⚠️",
+        text: "Be careful! You only get 3 mistakes (strikes) before you need to restart."
+      },
+      {
+        icon: "⭐",
+        text: `Get at least ${stageData?.requiredScore || 7} correct to pass the lesson.`
+      }
+    ],
+    culturalNote: "Learning vocabulary is an important step in language preservation. Each word you learn helps keep the Mvskoke language alive for future generations.",
+    buttonText: "Start Matching →"
+  };
 
   // Generate a random set of word exercises from language data
   const exercises = useMemo(() => {
@@ -90,6 +135,17 @@ const WordsLesson = ({ onBack, languageData }) => {
     setShowFailure(false);
     draggedItemRef.current = null;
   };
+
+  // Show instructions first
+  if (showInstructions) {
+    return (
+      <InstructionCard
+        instruction={instructionContent}
+        onClose={onBack}
+        onStart={() => setShowInstructions(false)}
+      />
+    );
+  }
 
   // Three Strikes Failure Modal
   if (showFailure) {
@@ -197,7 +253,7 @@ const WordsLesson = ({ onBack, languageData }) => {
           <div className="flex items-center gap-2">
             {feedback === "correct" ? <Check className="w-6 h-6" /> : <X className="w-6 h-6" />}
             <span className="font-bold text-xl">
-              {feedback === "correct" ? "Mvto!" : "Try again!"}
+              {feedback === "correct" ? "Mvto!" : "Incorrect"}
             </span>
           </div>
         </div>
