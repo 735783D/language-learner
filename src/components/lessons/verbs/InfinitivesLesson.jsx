@@ -23,6 +23,7 @@ const InfinitivesLesson = ({ onBack, languageData, practiceType = 'learn' }) => 
   const dragData = useRef(null);
   const [dragPosition, setDragPosition] = useState(null);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const hasPlayedFirstAudio = useRef(false); // Track if first audio has played
   
   const stageData = languageData[4];
 
@@ -170,25 +171,50 @@ const InfinitivesLesson = ({ onBack, languageData, practiceType = 'learn' }) => 
 
   // Play sound when verb changes (learn mode only)
   useEffect(() => {
-    if (practiceType === 'learn' && currentIntroVerb?.sound_file && currentIntroVerb.sound_file.trim() !== '' && audioRef.current) {
-      audioRef.current.load();
-      const timer = setTimeout(() => {
-        playSound();
-      }, 100);
-      return () => clearTimeout(timer);
+    if (practiceType === 'learn' && !showInstructions && currentIntroVerb?.sound_file && currentIntroVerb.sound_file.trim() !== '' && audioRef.current) {
+      // Skip auto-play on first verb if audio hasn't been loaded yet
+      if (currentIntroIndex === 0 && !hasPlayedFirstAudio.current) {
+        hasPlayedFirstAudio.current = true;
+        // Load audio but play after longer delay on first load
+        audioRef.current.load();
+        const timer = setTimeout(() => {
+          playSound();
+        }, 500);
+        return () => clearTimeout(timer);
+      } else {
+        // For subsequent verbs, play normally
+        audioRef.current.load();
+        const timer = setTimeout(() => {
+          playSound();
+        }, 100);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [currentIntroVerb, practiceType, playSound]);
+  }, [currentIntroVerb, practiceType, playSound, currentIntroIndex, showInstructions]);
 
   // Play sound when exercise changes in practice mode
   useEffect(() => {
-    if (practiceType === 'practice' && currentExerciseVerbData?.sound_file && currentExerciseVerbData.sound_file.trim() !== '' && audioRef.current) {
-      audioRef.current.load();
-      const timer = setTimeout(() => {
-        playSound();
-      }, 100);
-      return () => clearTimeout(timer);
+    if (practiceType === 'practice' && !showInstructions && currentExerciseVerbData?.sound_file && currentExerciseVerbData.sound_file.trim() !== '' && audioRef.current) {
+      // Skip auto-play on first exercise if audio hasn't been loaded yet
+      if (currentExercise === 0 && !hasPlayedFirstAudio.current) {
+        hasPlayedFirstAudio.current = true;
+        // Load audio but don't play automatically on first load
+        audioRef.current.load();
+        // Play after a delay to ensure audio is loaded
+        const timer = setTimeout(() => {
+          playSound();
+        }, 500);
+        return () => clearTimeout(timer);
+      } else {
+        // For subsequent exercises, play immediately
+        audioRef.current.load();
+        const timer = setTimeout(() => {
+          playSound();
+        }, 300);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [currentExerciseVerbData, practiceType, playSound]);
+  }, [currentExerciseVerbData, practiceType, playSound, currentExercise, showInstructions]);
 
   const handleDrop = (e) => {
     e.preventDefault();
