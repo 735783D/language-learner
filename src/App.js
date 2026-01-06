@@ -9,6 +9,8 @@ import ThreeLetterHub from './components/hubs/ThreeLetterHub';
 import VerbsHub from './components/hubs/VerbsHub';
 import GrammarHub from './components/hubs/GrammarHub';
 import StoriesHub from './components/hubs/StoriesHub';
+import WordsHub from './components/hubs/WordsHub';
+import AnimalsHub from './components/hubs/sub_hubs/AnimalsHub';
 import BasicsLesson from './components/lessons/BasicsLesson';
 import WordLesson from './components/lessons/WordLesson';
 import SentencesLesson from './components/lessons/SentencesLesson';
@@ -212,20 +214,71 @@ const App = () => {
     );
   }
 
-  // ========================================
-  // WORDS LESSON (Lesson 2) ROUTING
-  // ========================================
+// ========================================
+// WORDS LESSON (Lesson 2) ROUTING
+// ========================================
+
+// Words lesson selected but no practice chosen - show WordsHub
+if (selectedLesson === 2 && !selectedPractice) {
+  return (
+    <ThemeProvider>
+      <WordsHub
+        onSelectPractice={setSelectedPractice}
+        onBack={handleBackToHub}
+        languageName={selectedLanguage === 'spanish' ? 'Spanish' : 'Creek'}
+      />
+    </ThemeProvider>
+  );
+}
+
+// ========================================
+// ANIMALS SUB-HUB (within Words) - CHECK THIS FIRST!
+// ========================================
+
+// Animals selected but no subcategory - show AnimalsHub
+if (selectedLesson === 2 && selectedPractice === 'animals' && !selectedSubLesson) {
+  return (
+    <ThemeProvider>
+      <AnimalsHub
+        onSelectPractice={setSelectedSubLesson}
+        onBack={() => setSelectedPractice(null)}
+        languageName={selectedLanguage === 'spanish' ? 'Spanish' : 'Creek'}
+      />
+    </ThemeProvider>
+  );
+}
+
+// Animal subcategory selected (e.g., "farm-learn")
+if (selectedLesson === 2 && selectedPractice === 'animals' && selectedSubLesson) {
+  const [subcategory, practiceType] = selectedSubLesson.split('-');
   
-  if (selectedLesson === 2) {
-    return (
-      <ThemeProvider>
-        <WordLesson 
-          onBack={handleBackToHub} 
-          languageData={getLanguageData()} 
-        />
-      </ThemeProvider>
-    );
-  }
+  return (
+    <ThemeProvider>
+      <WordLesson 
+        onBack={() => setSelectedSubLesson(null)}
+        languageData={getLanguageData()}
+        category={`animals-${subcategory}`}
+        practiceType={practiceType}
+      />
+    </ThemeProvider>
+  );
+}
+
+// OTHER Words categories (colors, family, etc.)
+if (selectedLesson === 2 && selectedPractice) {
+  const [category, practiceType] = selectedPractice.split('-');
+  
+  return (
+    <ThemeProvider>
+      <WordLesson 
+        onBack={() => setSelectedPractice(null)}
+        languageData={getLanguageData()}
+        category={category}
+        practiceType={practiceType}
+      />
+    </ThemeProvider>
+  );
+}
 
   // ========================================
   // SENTENCES LESSON (Lesson 3) ROUTING

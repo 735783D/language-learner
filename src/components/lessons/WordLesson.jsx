@@ -1,12 +1,13 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { Star, X, Check } from 'lucide-react';
 import MatchExercise from '../exercises_types/MatchExercise';
+import VocabularyLearnExercise from '../exercises_types/VocabularyLearnExercise';
 import CompletionModal from '../CompletionModal';
 import InstructionCard from '../InstructionCard';
 import { useTheme } from '../../contexts/ThemeContext';
 import ThemeToggle from '../ThemeToggle';
 
-const WordsLesson = ({ onBack, languageData }) => {
+const WordsLesson = ({ onBack, languageData, category = null, practiceType = 'practice' }) => {
   const { theme } = useTheme();
   const [showInstructions, setShowInstructions] = useState(true);
   const [currentExercise, setCurrentExercise] = useState(0);
@@ -15,61 +16,130 @@ const WordsLesson = ({ onBack, languageData }) => {
   const [feedback, setFeedback] = useState(null);
   const [showCompletion, setShowCompletion] = useState(false);
   const [showFailure, setShowFailure] = useState(false);
+  const [dropZoneActive, setDropZoneActive] = useState(false);
   const draggedItemRef = useRef(null);
   
   const stageData = languageData[2];
 
-  // Instruction content for word matching
-  const instructionContent = {
-    title: "Word Matching",
-    subtitle: "Connect Mvskoke words with their English meanings",
-    icon: "🔗",
-    explanation: "In this exercise, you'll practice matching Mvskoke words with their English translations. You can drag the center word to one of the corner answers, or drag a corner answer to the center word. This helps build your vocabulary through active recall.",
+  // Get category name for display
+  const categoryName = category ? category.charAt(0).toUpperCase() + category.slice(1) : "Words";
+
+  // Instruction content based on practice type
+  const instructionContent = practiceType === 'learn' ? {
+    title: `Learn ${categoryName}`,
+    subtitle: "Build your Mvskoke vocabulary",
+    icon: "📚",
+    color: "border-green-500",
+    explanation: `In this lesson, you'll learn Mvskoke words for ${category}. Take your time to see each word and its meaning. There are no wrong answers - this is all about exposure and building familiarity!`,
     explanationTitle: "How it works",
-    examples: [
+    examples: stageData?.subLessons?.[category]?.exercises?.slice(0, 4).map(item => ({
+      mvskoke: item.mvskoke,
+      english: item.english
+    })) || [],
+    rules: [
       {
-        mvskoke: "oske",
-        english: "rain"
+        icon: "👀",
+        text: "Look at each word carefully and see how it's written in Mvskoke"
       },
       {
-        mvskoke: "hvtke",
-        english: "white"
+        icon: "🎯",
+        text: "Drag each word to the circle to continue to the next one"
       },
       {
-        mvskoke: "este",
-        english: "person"
-      },
-      {
-        mvskoke: "efv",
-        english: "dog"
+        icon: "✨",
+        text: "No pressure - just focus on learning the vocabulary!"
       }
     ],
+    culturalNote: "Building vocabulary is essential for communication. Each word you learn helps you express yourself and understand others in Mvskoke.",
+    buttonText: "Start Learning →"
+  } : {
+    title: `Practice ${categoryName}`,
+    subtitle: "Match Mvskoke words with their meanings",
+    icon: "⚡",
+    color: "border-blue-500",
+    explanation: "Now test your knowledge! Match each Mvskoke word with its English meaning. The word is in the center, and you need to drag it to the correct translation in one of the corners (or drag a corner to the center).",
+    explanationTitle: "How to practice",
+    examples: stageData?.subLessons?.[category]?.exercises?.slice(0, 4).map(item => ({
+      mvskoke: item.mvskoke,
+      english: item.english
+    })) || [],
     rules: [
       {
         icon: "↔️",
-        text: "Drag the center word to the correct corner, OR drag a corner answer to the center word - both work!"
+        text: "Drag the center word to the correct corner, OR drag a corner answer to the center word"
       },
       {
         icon: "⚠️",
-        text: "Be careful! You only get 3 mistakes (strikes) before you need to restart."
+        text: "Be careful! You only get 3 mistakes (strikes) before you need to restart"
       },
       {
         icon: "⭐",
-        text: `Get at least ${stageData?.requiredScore || 7} correct to pass the lesson.`
+        text: "Get at least 7 correct to pass the lesson"
       }
     ],
-    culturalNote: "Learning vocabulary is an important step in language preservation. Each word you learn helps keep the Mvskoke language alive for future generations.",
-    buttonText: "Start Matching →"
+    culturalNote: "Regular practice helps these words become natural. Don't worry about mistakes - they're part of learning!",
+    buttonText: "Start Practice →"
   };
 
-  // Generate a random set of word exercises from language data
+  // Generate exercises based on mode
   const exercises = useMemo(() => {
-    if (!stageData?.exercises) return [];
-    return [...stageData.exercises].sort(() => Math.random() - 0.5).slice(0, 10);
-  }, [stageData]);
+    // Handle animal subcategories (e.g., "animals-farm")
+    if (category?.startsWith('animals-')) {
+      const subcategory = category.split('-')[1]; // Extract "farm" from "animals-farm"
+      const subcategoryWords = stageData?.subLessons?.animals?.subCategories?.[subcategory]?.exercises || [];
+      
+      if (practiceType === 'learn') {
+        return subcategoryWords;
+      } else {
+        // Create matching exercises for practice mode
+        return subcategoryWords.map(item => {
+          const otherItems = subcategoryWords.filter(v => v.mvskoke !== item.mvskoke);
+          const wrongAnswers = otherItems
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 3)
+            .map(v => v.english);
+          
+          const options = [item.english, ...wrongAnswers].sort(() => Math.random() - 0.5);
+          
+          return {
+            word: item.mvskoke,
+            translation: item.english,
+            options: options,
+            sound_file: item.sound_file || null
+          };
+        }).sort(() => Math.random() - 0.5).slice(0, 10);
+      }
+    }
+    
+    // Regular categories (colors, family, food, etc.)
+    if (!stageData?.subLessons?.[category]?.exercises) return [];
+    
+    const categoryWords = stageData.subLessons[category].exercises;
+    
+    if (practiceType === 'learn') {
+      return categoryWords;
+    } else {
+      return categoryWords.map(item => {
+        const otherItems = categoryWords.filter(v => v.mvskoke !== item.mvskoke);
+        const wrongAnswers = otherItems
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 3)
+          .map(v => v.english);
+        
+        const options = [item.english, ...wrongAnswers].sort(() => Math.random() - 0.5);
+        
+        return {
+          word: item.mvskoke,
+          translation: item.english,
+          options: options,
+          sound_file: item.sound_file || null
+        };
+      }).sort(() => Math.random() - 0.5).slice(0, 10);
+    }
+  }, [stageData, category, practiceType]);
 
   const exercise = exercises[currentExercise];
-  const requiredScore = stageData?.requiredScore || 7;
+  const requiredScore = 7;
 
   const handleDragStart = (e, item) => {
     draggedItemRef.current = item;
@@ -84,14 +154,22 @@ const WordsLesson = ({ onBack, languageData }) => {
 
     let answersMatch = false;
 
-    if (targetAnswer) {
-      const translationParts = exercise.translation.toLowerCase().split(/[/,]/);
-      answersMatch = translationParts.some(part => part.trim() === targetAnswer.toLowerCase());
+    if (practiceType === 'learn') {
+      // In learn mode, always correct
+      answersMatch = true;
+    } else {
+      // In practice mode, check if answer is correct
+      if (targetAnswer) {
+        const translationParts = exercise.translation.toLowerCase().split(/[/,]/);
+        answersMatch = translationParts.some(part => part.trim() === targetAnswer.toLowerCase());
+      }
     }
 
     if (answersMatch) {
       setFeedback("correct");
-      setScore(score + 1);
+      if (practiceType === 'practice') {
+        setScore(score + 1);
+      }
     } else {
       setFeedback("incorrect");
       const newStrikes = strikes + 1;
@@ -106,14 +184,17 @@ const WordsLesson = ({ onBack, languageData }) => {
     }
 
     setTimeout(() => {
-      if (currentExercise < exercises.length - 1) {
-        setCurrentExercise(currentExercise + 1);
-        setFeedback(null);
-        draggedItemRef.current = null;
-      } else {
-        // Lesson complete - show completion modal
-        setShowCompletion(true);
-      }
+      // Use functional update to avoid stale closure
+      setCurrentExercise((prevExercise) => {
+        if (prevExercise < exercises.length - 1) {
+          setFeedback(null);
+          draggedItemRef.current = null;
+          return prevExercise + 1;
+        } else {
+          setShowCompletion(true);
+          return prevExercise;
+        }
+      });
     }, 1500);
   };
 
@@ -205,7 +286,9 @@ const WordsLesson = ({ onBack, languageData }) => {
 
       {/* Header */}
       <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-40 text-center">
-        <h1 className={`text-2xl font-bold ${theme.text}`}>Words</h1>
+        <h1 className={`text-2xl font-bold ${theme.text}`}>
+          {practiceType === 'learn' ? 'Learn' : 'Practice'} {categoryName}
+        </h1>
       </div>
 
       {/* Progress bar */}
@@ -215,12 +298,16 @@ const WordsLesson = ({ onBack, languageData }) => {
             <span className={`font-semibold ${theme.textSecondary}`}>
               {currentExercise + 1}/{exercises.length}
             </span>
-            <span className={`font-semibold ${theme.accent}`}>
-              <Star className="inline w-4 h-4" fill="currentColor" /> {score}/{requiredScore}
-            </span>
-            <span className="font-semibold text-red-400">
-              ❌ {strikes}/3
-            </span>
+            {practiceType === 'practice' && (
+              <>
+                <span className={`font-semibold ${theme.accent}`}>
+                  <Star className="inline w-4 h-4" fill="currentColor" /> {score}/{requiredScore}
+                </span>
+                <span className="font-semibold text-red-400">
+                  ❌ {strikes}/3
+                </span>
+              </>
+            )}
           </div>
           <div className={`w-full ${theme.progressBg} rounded-full h-2`}>
             <div
@@ -233,16 +320,27 @@ const WordsLesson = ({ onBack, languageData }) => {
 
       {/* Main content area */}
       <div className="absolute inset-0 pt-32 pb-8">
-        <MatchExercise 
-          key={currentExercise}
-          exercise={exercise}
-          feedback={feedback}
-          currentStage={2}
-          currentExercise={currentExercise}
-          draggedItemRef={draggedItemRef}
-          handleDragStart={handleDragStart}
-          handleDrop={handleDrop}
-        />
+        {practiceType === 'learn' ? (
+          <VocabularyLearnExercise
+            word={exercise}
+            dropZoneActive={dropZoneActive}
+            setDropZoneActive={setDropZoneActive}
+            handleDragStart={handleDragStart}
+            handleDrop={handleDrop}
+            draggedItemRef={draggedItemRef}
+          />
+        ) : (
+          <MatchExercise 
+            key={currentExercise}
+            exercise={exercise}
+            feedback={feedback}
+            currentStage={2}
+            currentExercise={currentExercise}
+            draggedItemRef={draggedItemRef}
+            handleDragStart={handleDragStart}
+            handleDrop={handleDrop}
+          />
+        )}
       </div>
 
       {/* Feedback */}
@@ -262,11 +360,11 @@ const WordsLesson = ({ onBack, languageData }) => {
       {/* Completion Modal */}
       <CompletionModal
         isOpen={showCompletion}
-        score={score}
+        score={practiceType === 'learn' ? exercises.length : score}
         totalQuestions={exercises.length}
         onRestart={handleRestart}
         onBack={onBack}
-        lessonName="Word Matching"
+        lessonName={`${practiceType === 'learn' ? 'Learn' : 'Practice'} ${categoryName}`}
       />
     </div>
   );

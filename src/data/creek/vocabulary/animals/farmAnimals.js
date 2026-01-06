@@ -1,0 +1,25 @@
+// FARM ANIMALS (22 animals)
+export const farmAnimals = [
+  { mvskoke: "Efv", english: "Dog", image: "", image_alt: "", sound_file: "/language-learner/sounds/creek/nouns/animals/EFV.mp3" },
+  { mvskoke: "Pose", english: "Cat", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Sokhv", english: "Pig", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Totolose", english: "Chicken", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Wakv", english: "Cow", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Rakko", english: "Horse", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Yvpefikv", english: "Sheep", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Cowatv", english: "Goat", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Kowike", english: "Guinea", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Tolos Enhokte", english: "Hen", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Rakko Pihkv Hayv", english: "Donkey", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Yvpefikuce", english: "Lamb", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Yvpefikv Rakko", english: "Ram", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Tolos Enhononwv", english: "Cock", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Fuco", english: "Duck", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Fuco Honvnwv", english: "Drake", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Fucuce", english: "Duckling", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Fuco Aksomkoce", english: "Black duck", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Sasakwv", english: "Goose", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Sasakwv Enhokte", english: "Gander", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Saskwuce", english: "Gosling", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Penwv", english: "Turkey", image: "", image_alt: "", sound_file: "" }
+];

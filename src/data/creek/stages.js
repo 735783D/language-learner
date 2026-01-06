@@ -9,7 +9,10 @@ import {
   futurePattern,
   commands 
 } from './vocabulary/verbs';
-import { allNouns } from './vocabulary/nouns';
+// import { nounsByCategory } from './vocabulary/nouns';
+import { vocabularyByCategory } from './vocabulary';
+
+// import { allNouns } from './vocabulary/nouns';
 
 // Helper function to create match exercises from vocabulary data
 const createMatchExercises = (vocabArray, numWrongAnswers = 3) => {
@@ -157,13 +160,80 @@ export const creekStages = {
     }
   },
 
+  // Stage 2 - Words/Vocabulary
   2: {
-    name: "Basic Words",
+    name: "Words",
     description: "Learn essential Mvskoke vocabulary",
     requiredScore: 7,
-    type: "match",
-    // Dynamically create exercises from nouns data
-    exercises: createMatchExercises(allNouns)
+    type: "vocabulary",
+    subLessons: {
+      // Animals now routes to AnimalsHub with subcategories
+      animals: {
+        name: "Animals",
+        description: "Learn animal names",
+        subCategories: {
+          farm: {
+            name: "Farm Animals",
+            exercises: vocabularyByCategory.animals.farm
+          },
+          wild: {
+            name: "Wild Animals",
+            exercises: vocabularyByCategory.animals.wild
+          },
+          birds: {
+            name: "Birds",
+            exercises: vocabularyByCategory.animals.birds
+          },
+          insects: {
+            name: "Insects",
+            exercises: vocabularyByCategory.animals.insects
+          },
+          aquatic: {
+            name: "Aquatic Animals",
+            exercises: vocabularyByCategory.animals.aquatic
+          },
+          reptiles: {
+            name: "Reptiles & Amphibians",
+            exercises: vocabularyByCategory.animals.reptiles
+          }
+        }
+      },
+      colors: {
+        name: "Colors",
+        description: "Learn colors and descriptions",
+        exercises: vocabularyByCategory.colors
+      },
+      family: {
+        name: "Family",
+        description: "Family members and relationships",
+        exercises: vocabularyByCategory.family
+      },
+      food: {
+        name: "Food",
+        description: "Foods and drinks",
+        exercises: vocabularyByCategory.food
+      },
+      body: {
+        name: "Body Parts",
+        description: "Parts of the body",
+        exercises: vocabularyByCategory.body
+      },
+      nature: {
+        name: "Nature",
+        description: "Plants, weather, and natural world",
+        exercises: vocabularyByCategory.nature
+      },
+      home: {
+        name: "Home & Objects",
+        description: "Household items and objects",
+        exercises: vocabularyByCategory.home
+      },
+      people: {
+        name: "People",
+        description: "Words for people and descriptions",
+        exercises: vocabularyByCategory.people
+      }
+    }
   },
   
   3: {

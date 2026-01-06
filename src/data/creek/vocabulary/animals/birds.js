@@ -1,0 +1,28 @@
+// BIRDS (27 birds)
+export const birds = [
+  { mvskoke: "Fuswv", english: "Bird", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Pvce", english: "Pigeon", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Pvce Hoyv", english: "Mourning dove", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Osahwv", english: "Crow", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Hvrvnwv", english: "Falcon", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Nene letkv", english: "Roadrunner", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Hokperuce", english: "Barred owl", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Koskowv", english: "Fly catcher", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Fus-Hvtkv", english: "White Crane", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Wvko Rakko", english: "Blue crane", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Tvlokko", english: "Cuckoo", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Wvco Hvtke", english: "Egret", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Lepleyetv", english: "Flicker", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Fus Herv", english: "Golden eagle", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Opv", english: "Owl", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Lvmhe", english: "Eagle", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Nok sokcv", english: "Pelican", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Ayo", english: "Hawk", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Fuscate", english: "Cardinal", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Eto Caskuce Cvkvlv", english: "Hummingbird", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Eto Caskuce Cvkvlv", english: "Woodpecker", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Sakkelv", english: "Blackbird", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Tvse", english: "Bluejay", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Akcvohkv", english: "Crane", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Takfvleleskv", english: "Bat", image: "", image_alt: "", sound_file: "" }
+];
