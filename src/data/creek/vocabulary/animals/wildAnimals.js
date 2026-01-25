@@ -15,5 +15,6 @@ export const wildAnimals = [
   { mvskoke: "Ero", english: "Squirrel", image: "", image_alt: "", sound_file: "" },
   { mvskoke: "Nere Fullv", english: "Coyote", image: "", image_alt: "", sound_file: "" },
   { mvskoke: "Yupolowake", english: "Elephant", image: "", image_alt: "", sound_file: "" },
-  { mvskoke: "Rvtce Kuphe", english: "Camel", image: "", image_alt: "", sound_file: "" }
+  { mvskoke: "Rvtce Kuphe", english: "Camel", image: "", image_alt: "", sound_file: "" },
+  { mvskoke: "Cerokucuce", english: "Chipmunk", image: "", image_alt: "", sound_file: "/language-learner/sounds/creek/nouns/animals/wild/" }
 ];
