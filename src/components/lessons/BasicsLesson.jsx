@@ -16,6 +16,10 @@ const BasicsLesson = ({ onBack, languageData, subLesson, practice, stageKey }) =
   const draggedItemRef = useRef(null);
   const [dropZoneActive, setDropZoneActive] = useState(false);
 
+  // Build a stable lesson ID from the props
+  // e.g. "single-vowels", "two-letter-digraphs", etc.
+  const lessonId = practice ? `${subLesson}-${practice}` : subLesson;
+
   // Get the correct stage based on subLesson type
   const actualStageKey = stageKey || 1;
   const stageData = languageData[actualStageKey];
@@ -36,36 +40,15 @@ const BasicsLesson = ({ onBack, languageData, subLesson, practice, stageKey }) =
     explanation: "This exercise helps you become familiar with Mvskoke letters and letter combinations. You'll see a character and hear its pronunciation. Simply drag the character to the drop zone to move forward. This is about exposure and building familiarity, not testing - there are no wrong answers!",
     explanationTitle: "How it works",
     examples: [
-      {
-        mvskoke: "a",
-        english: "Sounds like 'a' in 'father'"
-      },
-      {
-        mvskoke: "e",
-        english: "Sounds like 'e' in 'set'"
-      },
-      {
-        mvskoke: "i",
-        english: "Sounds like 'ay' in 'day'"
-      },
-      {
-        mvskoke: "v",
-        english: "Sounds like 'uh' in 'cup'"
-      }
+      { mvskoke: "a", english: "Sounds like 'a' in 'father'" },
+      { mvskoke: "e", english: "Sounds like 'e' in 'set'" },
+      { mvskoke: "i", english: "Sounds like 'ay' in 'day'" },
+      { mvskoke: "v", english: "Sounds like 'uh' in 'cup'" }
     ],
     rules: [
-      {
-        icon: "👂",
-        text: "Listen carefully to each sound. Click the speaker icon to hear it again."
-      },
-      {
-        icon: "🎯",
-        text: "Drag the character to the drop zone when you're ready to continue."
-      },
-      {
-        icon: "✨",
-        text: "There are no wrong answers - this is about building familiarity with the alphabet!"
-      }
+      { icon: "👂", text: "Listen carefully to each sound. Click the speaker icon to hear it again." },
+      { icon: "🎯", text: "Drag the character to the drop zone when you're ready to continue." },
+      { icon: "✨", text: "There are no wrong answers - this is about building familiarity with the alphabet!" }
     ],
     culturalNote: "The Mvskoke writing system was developed to preserve the spoken language. Each letter represents a specific sound that's important for proper pronunciation and respectful communication.",
     buttonText: "Start Learning →"
@@ -91,11 +74,8 @@ const BasicsLesson = ({ onBack, languageData, subLesson, practice, stageKey }) =
     e.preventDefault();
     setDropZoneActive(false);
     
-    if (!draggedItemRef.current) {
-      return;
-    }
+    if (!draggedItemRef.current) return;
 
-    // Character exercises are always correct (exposure-based learning)
     setFeedback("correct");
     setScore(prevScore => prevScore + 1);
 
@@ -105,7 +85,6 @@ const BasicsLesson = ({ onBack, languageData, subLesson, practice, stageKey }) =
         setFeedback(null);
         draggedItemRef.current = null;
       } else {
-        // Lesson complete - show completion modal
         setShowCompletion(true);
       }
     }, 1500);
@@ -119,7 +98,6 @@ const BasicsLesson = ({ onBack, languageData, subLesson, practice, stageKey }) =
     draggedItemRef.current = null;
   };
 
-  // Show instructions first
   if (showInstructions) {
     return (
       <InstructionCard
@@ -146,7 +124,6 @@ const BasicsLesson = ({ onBack, languageData, subLesson, practice, stageKey }) =
 
       <ThemeToggle />
 
-      {/* Back button */}
       <button
         onClick={onBack}
         className={`fixed top-4 left-4 z-50 px-4 py-2 rounded-lg shadow hover:shadow-md transition ${theme.button}`}
@@ -154,12 +131,10 @@ const BasicsLesson = ({ onBack, languageData, subLesson, practice, stageKey }) =
         ← Back
       </button>
 
-      {/* Header */}
       <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-40 text-center">
         <h1 className={`text-2xl font-bold ${theme.text}`}>Basics</h1>
       </div>
 
-      {/* Progress bar */}
       <div className="fixed top-16 left-0 right-0 z-40 px-8">
         <div className="max-w-2xl mx-auto">
           <div className="flex justify-between items-center mb-2 text-sm">
@@ -179,7 +154,6 @@ const BasicsLesson = ({ onBack, languageData, subLesson, practice, stageKey }) =
         </div>
       </div>
 
-      {/* Main content area */}
       <div className="absolute inset-0 pt-32 pb-8">
         <CharacterExercise 
           exercise={exercise}
@@ -191,7 +165,6 @@ const BasicsLesson = ({ onBack, languageData, subLesson, practice, stageKey }) =
         />
       </div>
 
-      {/* Feedback */}
       {feedback && (
         <div className={`fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 px-1.5 py-1 rounded-xl shadow-lg ${
           feedback === "correct" ? "bg-green-500 text-white" : "bg-red-500 text-white"
@@ -205,7 +178,6 @@ const BasicsLesson = ({ onBack, languageData, subLesson, practice, stageKey }) =
         </div>
       )}
 
-      {/* Completion Modal */}
       <CompletionModal
         isOpen={showCompletion}
         score={score}
@@ -213,6 +185,7 @@ const BasicsLesson = ({ onBack, languageData, subLesson, practice, stageKey }) =
         onRestart={handleRestart}
         onBack={onBack}
         lessonName="Character Practice"
+        lessonId={lessonId}
       />
     </div>
   );
@@ -227,11 +200,13 @@ export default BasicsLesson;
 // import { Star, X, Check } from 'lucide-react';
 // import CharacterExercise from '../exercises_types/CharacterExercise';
 // import CompletionModal from '../CompletionModal';
+// import InstructionCard from '../InstructionCard';
 // import { useTheme } from '../../contexts/ThemeContext';
 // import ThemeToggle from '../ThemeToggle';
 
 // const BasicsLesson = ({ onBack, languageData, subLesson, practice, stageKey }) => {
 //   const { theme } = useTheme();
+//   const [showInstructions, setShowInstructions] = useState(true);
 //   const [currentExercise, setCurrentExercise] = useState(0);
 //   const [score, setScore] = useState(0);
 //   const [feedback, setFeedback] = useState(null);
@@ -250,6 +225,49 @@ export default BasicsLesson;
 //   } else {
 //     exercises = stageData?.exercises || [];
 //   }
+
+//   // Instruction content for character practice
+//   const instructionContent = {
+//     title: "Character Practice",
+//     subtitle: "Learn Mvskoke letters and their sounds",
+//     icon: "🔤",
+//     explanation: "This exercise helps you become familiar with Mvskoke letters and letter combinations. You'll see a character and hear its pronunciation. Simply drag the character to the drop zone to move forward. This is about exposure and building familiarity, not testing - there are no wrong answers!",
+//     explanationTitle: "How it works",
+//     examples: [
+//       {
+//         mvskoke: "a",
+//         english: "Sounds like 'a' in 'father'"
+//       },
+//       {
+//         mvskoke: "e",
+//         english: "Sounds like 'e' in 'set'"
+//       },
+//       {
+//         mvskoke: "i",
+//         english: "Sounds like 'ay' in 'day'"
+//       },
+//       {
+//         mvskoke: "v",
+//         english: "Sounds like 'uh' in 'cup'"
+//       }
+//     ],
+//     rules: [
+//       {
+//         icon: "👂",
+//         text: "Listen carefully to each sound. Click the speaker icon to hear it again."
+//       },
+//       {
+//         icon: "🎯",
+//         text: "Drag the character to the drop zone when you're ready to continue."
+//       },
+//       {
+//         icon: "✨",
+//         text: "There are no wrong answers - this is about building familiarity with the alphabet!"
+//       }
+//     ],
+//     culturalNote: "The Mvskoke writing system was developed to preserve the spoken language. Each letter represents a specific sound that's important for proper pronunciation and respectful communication.",
+//     buttonText: "Start Learning →"
+//   };
 
 //   if (!exercises || exercises.length === 0) {
 //     return (
@@ -298,6 +316,17 @@ export default BasicsLesson;
 //     setShowCompletion(false);
 //     draggedItemRef.current = null;
 //   };
+
+//   // Show instructions first
+//   if (showInstructions) {
+//     return (
+//       <InstructionCard
+//         instruction={instructionContent}
+//         onClose={onBack}
+//         onStart={() => setShowInstructions(false)}
+//       />
+//     );
+//   }
 
 //   return (
 //     <div className={`fixed inset-0 ${theme.bg} overflow-hidden`} style={{userSelect: 'none', WebkitUserSelect: 'none'}}>
